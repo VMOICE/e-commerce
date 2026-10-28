@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-commerce</title>
+</head>
+<body>
+    <main>
+        <h1>Loja Virtual</h1>
+        <p>Frontend iniciado com sucesso.</p>
+        <p id="api-status">Verificando API...</p>
+    </main>
+
+    <script>
+        const apiStatus = document.querySelector("#api-status");
+
+        fetch("http://localhost:8081/")
+            .then((response) => {
+                if (response.ok) {
+                    apiStatus.textContent =
+                        "A API está respondendo.";
+                } else {
+                    apiStatus.textContent =
+                        "A API respondeu com status " + response.status + ".";
+                }
+            })
+            .catch(() => {
+                apiStatus.textContent =
+                    "Não foi possível acessar a API.";
+            });
+    </script>
+</body>
+</html>

@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\HealthController;
 use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\CartController;
 
 Route::get('/health', [HealthController::class, 'index']);
 
@@ -25,3 +26,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/me', [AuthController::class, 'me']);
     Route::post('/logout', [AuthController::class, 'logout']);
 });
+
+Route::get('/cart', [CartController::class, 'show']);
+Route::post('/cart/items', [CartController::class, 'store']);
+Route::patch('/cart/items/{productId}', [CartController::class, 'update'])
+    ->whereNumber('productId');
+Route::delete('/cart/items/{productId}', [CartController::class, 'destroy'])
+    ->whereNumber('productId');
+Route::delete('/cart', [CartController::class, 'clear']);

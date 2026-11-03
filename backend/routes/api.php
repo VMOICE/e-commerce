@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\CartController;
 
+// Verificação da API
 Route::get('/health', [HealthController::class, 'index']);
 
 // Catálogo público
@@ -27,10 +28,32 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
 });
 
+// Carrinho
 Route::get('/cart', [CartController::class, 'show']);
 Route::post('/cart/items', [CartController::class, 'store']);
+
 Route::patch('/cart/items/{productId}', [CartController::class, 'update'])
     ->whereNumber('productId');
+
 Route::delete('/cart/items/{productId}', [CartController::class, 'destroy'])
     ->whereNumber('productId');
+
 Route::delete('/cart', [CartController::class, 'clear']);
+
+// Rotas administrativas
+Route::middleware(['auth:sanctum', 'admin'])
+    ->prefix('admin')
+    ->group(function () {
+
+        // Produtos
+        Route::post('/products', [ProductController::class, 'store']);
+        Route::put('/products/{product}', [ProductController::class, 'update']);
+        Route::patch('/products/{product}', [ProductController::class, 'update']);
+        Route::delete('/products/{product}', [ProductController::class, 'destroy']);
+
+        // Categorias
+        Route::post('/categories', [CategoryController::class, 'store']);
+        Route::put('/categories/{category}', [CategoryController::class, 'update']);
+        Route::patch('/categories/{category}', [CategoryController::class, 'update']);
+        Route::delete('/categories/{category}', [CategoryController::class, 'destroy']);
+    });

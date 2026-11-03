@@ -3,11 +3,12 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreProductRequest;
+use App\Http\Requests\UpdateProductRequest;
+use App\Models\Product;
 use App\Services\ProductService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use App\Models\Product;
-use Illuminate\Validation\Rule;
 
 class ProductController extends Controller
 {
@@ -39,21 +40,10 @@ class ProductController extends Controller
     }
 
     public function store(
-        Request $request,
+        StoreProductRequest $request,
         ProductService $productService
     ): JsonResponse {
-        $validated = $request->validate([
-            'category_id' => ['required', 'integer', 'exists:categories,id'],
-            'name' => ['required', 'string', 'max:150'],
-            'slug' => ['required', 'string', 'max:180', 'unique:products,slug'],
-            'description' => ['nullable', 'string'],
-            'price' => ['required', 'numeric', 'min:0', 'max:99999999.99'],
-            'stock' => ['required', 'integer', 'min:0'],
-            'image_path' => ['nullable', 'string', 'max:255'],
-            'is_active' => ['sometimes', 'boolean'],
-        ]);
-
-        $product = $productService->create($validated);
+        $product = $productService->create($request->validated());
 
         return response()->json([
             'message' => 'Produto cadastrado com sucesso.',
@@ -62,27 +52,14 @@ class ProductController extends Controller
     }
 
     public function update(
-        Request $request,
+        UpdateProductRequest $request,
         Product $product,
         ProductService $productService
     ): JsonResponse {
-        $validated = $request->validate([
-            'category_id' => ['sometimes', 'integer', 'exists:categories,id'],
-            'name' => ['sometimes', 'string', 'max:150'],
-            'slug' => [
-                'sometimes',
-                'string',
-                'max:180',
-                Rule::unique('products', 'slug')->ignore($product->id),
-            ],
-            'description' => ['sometimes', 'nullable', 'string'],
-            'price' => ['sometimes', 'numeric', 'min:0', 'max:99999999.99'],
-            'stock' => ['sometimes', 'integer', 'min:0'],
-            'image_path' => ['sometimes', 'nullable', 'string', 'max:255'],
-            'is_active' => ['sometimes', 'boolean'],
-        ]);
-
-        $updatedProduct = $productService->update($product, $validated);
+        $updatedProduct = $productService->update(
+            $product,
+            $request->validated()
+        );
 
         return response()->json([
             'message' => 'Produto atualizado com sucesso.',
@@ -99,5 +76,5 @@ class ProductController extends Controller
         return response()->json([
             'message' => 'Produto desativado com sucesso.',
         ]);
-    }    
+    }
 }

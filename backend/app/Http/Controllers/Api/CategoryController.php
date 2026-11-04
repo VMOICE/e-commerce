@@ -3,58 +3,50 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreCategoryRequest;
+use App\Http\Requests\UpdateCategoryRequest;
+use App\Http\Resources\CategoryResource;
 use App\Models\Category;
 use App\Services\CategoryService;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
+use Illuminate\Database\QueryException;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class CategoryController extends Controller
 {
     public function index(
         CategoryService $categoryService
-    ): JsonResponse {
+    ): AnonymousResourceCollection {
         $categories = $categoryService->getAllWithActiveProductCount();
 
-        return response()->json([
-            'data' => $categories,
-        ]);
+        return CategoryResource::collection($categories);
     }
 
     public function store(
-        Request $request,
+        StoreCategoryRequest $request,
         CategoryService $categoryService
     ): JsonResponse {
-        $data = $request->validate([
-            'name' => ['required', 'string', 'max:100', 'unique:categories,name'],
-            'slug' => ['required', 'string', 'max:120', 'unique:categories,slug'],
-            'description' => ['nullable', 'string'],
-        ]);
-
-        $category = $categoryService->create($data);
+        $category = $categoryService->create($request->validated());
 
         return response()->json([
             'message' => 'Categoria criada com sucesso.',
-            'data' => $category,
+            'data' => new CategoryResource($category),
         ], 201);
     }
 
     public function update(
-        Request $request,
+        UpdateCategoryRequest $request,
         Category $category,
         CategoryService $categoryService
     ): JsonResponse {
-        $data = $request->validate([
-            'name' => ['sometimes', 'required', 'string', 'max:100', Rule::unique('categories', 'name')->ignore($category->id)],
-            'slug' => ['sometimes', 'required', 'string', 'max:120', Rule::unique('categories', 'slug')->ignore($category->id)],
-            'description' => ['sometimes', 'nullable', 'string'],
-        ]);
-
-        $category = $categoryService->update($category, $data);
+        $updatedCategory = $categoryService->update(
+            $category,
+            $request->validated()
+        );
 
         return response()->json([
             'message' => 'Categoria atualizada com sucesso.',
-            'data' => $category,
+            'data' => new CategoryResource($updatedCategory),
         ]);
     }
 
@@ -64,7 +56,7 @@ class CategoryController extends Controller
     ): JsonResponse {
         try {
             $categoryService->delete($category);
-        } catch (\Illuminate\Database\QueryException $exception) {
+        } catch (QueryException $exception) {
             return response()->json([
                 'message' => 'Não é possível excluir uma categoria que possui produtos associados.',
             ], 409);

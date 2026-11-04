@@ -7,13 +7,19 @@ use Illuminate\Http\Resources\Json\JsonResource;
 
 class OrderResource extends JsonResource
 {
-    /**
-     * Transforma o pedido em JSON.
-     */
     public function toArray(Request $request): array
     {
         return [
             'id' => $this->id,
+
+            'user' => $this->whenLoaded('user', function () {
+                return [
+                    'id' => $this->user->id,
+                    'name' => $this->user->name,
+                    'email' => $this->user->email,
+                ];
+            }),
+
             'user_id' => $this->user_id,
             'status' => $this->status,
             'subtotal' => $this->subtotal,

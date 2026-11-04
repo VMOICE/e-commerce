@@ -62,4 +62,12 @@ Route::middleware(['auth:sanctum', 'admin'])
         Route::put('/categories/{category}', [CategoryController::class, 'update']);
         Route::patch('/categories/{category}', [CategoryController::class, 'update']);
         Route::delete('/categories/{category}', [CategoryController::class, 'destroy']);
+
+        // Gerenciamento de pedidos
+        Route::get('/orders', [OrderController::class, 'adminIndex']);
+
+        Route::get('/orders/{id}', [OrderController::class, 'adminShow'])
+            ->whereNumber('id');
+
+        Route::patch('/orders/{order}/status', [OrderController::class, 'updateStatus']);
     });

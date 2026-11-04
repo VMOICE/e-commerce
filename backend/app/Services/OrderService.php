@@ -101,6 +101,111 @@ class OrderService
     }
 
     /**
+     * Retorna os pedidos do cliente autenticado.
+     */
+    public function getUserOrders(User $user)
+    {
+        return Order::where('user_id', $user->id)
+            ->with('items')
+            ->latest()
+            ->paginate(10);
+    }
+
+    /**
+     * Retorna todos os pedidos para o painel administrativo.
+     */
+    public function getAllOrders()
+    {
+        return Order::with(['user', 'items'])
+            ->latest()
+            ->paginate(15);
+    }
+
+    /**
+     * Retorna um pedido específico do cliente autenticado.
+     */
+    public function findUserOrder(User $user, int $orderId): Order
+    {
+        return Order::where('user_id', $user->id)
+            ->with('items')
+            ->findOrFail($orderId);
+    }
+
+     /**
+     * Retorna qualquer pedido para consulta administrativa.
+     */
+    public function findOrder(int $orderId): Order
+    {
+        return Order::with(['user', 'items'])
+            ->findOrFail($orderId);
+    }
+
+    /**
+     * Atualiza o status de um pedido e gerencia o estoque.
+     */
+    public function updateStatus(Order $order, string $newStatus): Order
+    {
+        return DB::transaction(function () use ($order, $newStatus) {
+
+            $lockedOrder = Order::whereKey($order->id)
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            $transitions = [
+                'pending' => ['paid', 'cancelled'],
+                'paid' => ['processing', 'cancelled'],
+                'processing' => ['shipped', 'cancelled'],
+                'shipped' => ['delivered'],
+                'delivered' => [],
+                'cancelled' => [],
+            ];
+
+            $allowedStatuses = $transitions[$lockedOrder->status] ?? [];
+
+            if (!in_array($newStatus, $allowedStatuses, true)) {
+                throw ValidationException::withMessages([
+                    'status' => 'Não é permitida a transição de '
+                        . $lockedOrder->status
+                        . ' para '
+                        . $newStatus
+                        . '.',
+                ]);
+            }
+
+            // Devolve os produtos ao estoque quando o pedido é cancelado.
+            if ($newStatus === 'cancelled') {
+
+                $items = $lockedOrder->items()
+                    ->orderBy('product_id')
+                    ->lockForUpdate()
+                    ->get();
+
+                foreach ($items as $item) {
+
+                    // Produtos excluídos não possuem mais registro para reposição.
+                    if (!$item->product_id) {
+                        continue;
+                    }
+
+                    $product = Product::whereKey($item->product_id)
+                        ->lockForUpdate()
+                        ->first();
+
+                    if ($product) {
+                        $product->increment('stock', $item->quantity);
+                    }
+                }
+            }
+
+            $lockedOrder->update([
+                'status' => $newStatus,
+            ]);
+
+            return $lockedOrder->load('items');
+        });
+    }
+
+    /**
      * Converte um valor decimal em centavos inteiros.
      */
     private function priceToCents(string $price): int
@@ -123,26 +228,5 @@ class OrderService
         return intdiv($cents, 100)
             . '.'
             . str_pad((string) ($cents % 100), 2, '0', STR_PAD_LEFT);
-    }
-
-    /**
-     * Retorna os pedidos do cliente autenticado.
-     */
-    public function getUserOrders(User $user)
-    {
-        return Order::where('user_id', $user->id)
-            ->with('items')
-            ->latest()
-            ->paginate(10);
-    }
-
-    /**
-     * Retorna um pedido específico do cliente autenticado.
-     */
-    public function findUserOrder(User $user, int $orderId): Order
-    {
-        return Order::where('user_id', $user->id)
-            ->with('items')
-            ->findOrFail($orderId);
     }
 }

@@ -3,7 +3,9 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\UpdateOrderStatusRequest;
 use App\Http\Resources\OrderResource;
+use App\Models\Order;
 use App\Services\OrderService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -24,7 +26,7 @@ class OrderController extends Controller
     }
 
     /**
-     * Exibe os detalhes de um pedido específico.
+     * Exibe os detalhes de um pedido específico do cliente.
      */
     public function show(
         Request $request,
@@ -37,7 +39,7 @@ class OrderController extends Controller
     }
 
     /**
-     * Cria um pedido a partir do carrinho do cliente autenticado.
+     * Cria um pedido a partir do carrinho do cliente.
      */
     public function store(
         Request $request,
@@ -49,5 +51,47 @@ class OrderController extends Controller
             'message' => 'Pedido criado com sucesso.',
             'data' => new OrderResource($order),
         ], 201);
+    }
+
+    /**
+     * Lista todos os pedidos para o administrador.
+     */
+    public function adminIndex(
+        OrderService $orderService
+    ): AnonymousResourceCollection {
+        $orders = $orderService->getAllOrders();
+
+        return OrderResource::collection($orders);
+    }
+
+    /**
+     * Exibe os detalhes de qualquer pedido para o administrador.
+     */
+    public function adminShow(
+        int $id,
+        OrderService $orderService
+    ): OrderResource {
+        $order = $orderService->findOrder($id);
+
+        return new OrderResource($order);
+    }
+
+    /**
+     * Atualiza o status de um pedido pelo administrador.
+     */
+    public function updateStatus(
+        UpdateOrderStatusRequest $request,
+        Order $order,
+        OrderService $orderService
+    ): JsonResponse {
+        $updatedOrder = $orderService->updateStatus(
+            $order,
+            $request->validated('status')
+        );
+
+        return response()->json([
+            'message' => 'Status do pedido atualizado com sucesso.',
+            'data' => new OrderResource($updatedOrder),
+        ]);
     }
 }

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Services\CartService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -14,8 +15,10 @@ class AuthController extends Controller
     /**
      * Registra um novo cliente.
      */
-    public function register(Request $request): JsonResponse
-    {
+    public function register(
+        Request $request,
+        CartService $cartService
+    ): JsonResponse {
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
@@ -33,20 +36,29 @@ class AuthController extends Controller
             'role' => 'customer',
         ]);
 
+        $cartMerge = $cartService->mergeGuestCart(
+            $user,
+            $request->header('X-Guest-Cart-Token')
+        );
+
         $token = $user->createToken('postman')->plainTextToken;
 
         return response()->json([
             'message' => 'Conta criada com sucesso.',
             'user' => $user,
             'token' => $token,
+            'cart' => $cartMerge['cart'],
+            'warnings' => $cartMerge['warnings'],
         ], 201);
     }
 
     /**
      * Autentica um usuário existente.
      */
-    public function login(Request $request): JsonResponse
-    {
+    public function login(
+        Request $request,
+        CartService $cartService
+    ): JsonResponse {
         $validated = $request->validate([
             'email' => ['required', 'email'],
             'password' => ['required', 'string'],
@@ -63,12 +75,19 @@ class AuthController extends Controller
             ], 401);
         }
 
+        $cartMerge = $cartService->mergeGuestCart(
+            $user,
+            $request->header('X-Guest-Cart-Token')
+        );
+
         $token = $user->createToken('postman')->plainTextToken;
 
         return response()->json([
             'message' => 'Login realizado com sucesso.',
             'user' => $user,
             'token' => $token,
+            'cart' => $cartMerge['cart'],
+            'warnings' => $cartMerge['warnings'],
         ]);
     }
 

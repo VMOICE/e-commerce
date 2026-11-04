@@ -168,4 +168,119 @@ class CartService
 
         return $this->getCart($cart);
     }
+
+    /**
+     * Mescla o carrinho de visitante com o carrinho do usuário.
+     *
+     * Produtos indisponíveis são removidos e quantidades acima
+     * do estoque são ajustadas. Os ajustes são informados ao usuário.
+     */
+    public function mergeGuestCart(
+        User $user,
+        ?string $guestToken
+    ): array {
+        return DB::transaction(function () use ($user, $guestToken) {
+
+            // Localiza o carrinho do usuário.
+            $userCart = Cart::firstOrCreate(
+                ['user_id' => $user->id],
+                ['guest_token_hash' => null]
+            );
+
+            $userCart = Cart::whereKey($userCart->id)
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            $warnings = [];
+
+            // Sem token, não existe carrinho de visitante para mesclar.
+            if ($guestToken === null || $guestToken === '') {
+                return [
+                    'cart' => $this->getCart($userCart),
+                    'warnings' => $warnings,
+                ];
+            }
+
+            // Localiza o carrinho usando o hash do token.
+            $guestCart = Cart::where(
+                'guest_token_hash',
+                hash('sha256', $guestToken)
+            )
+                ->lockForUpdate()
+                ->first();
+
+            if ($guestCart === null) {
+                return [
+                    'cart' => $this->getCart($userCart),
+                    'warnings' => $warnings,
+                ];
+            }
+
+            // Percorre os produtos do carrinho de visitante.
+            $guestItems = $guestCart->items()
+                ->lockForUpdate()
+                ->get();
+
+            foreach ($guestItems as $guestItem) {
+
+                // Bloqueia o produto durante a verificação do estoque.
+                $product = Product::whereKey($guestItem->product_id)
+                    ->lockForUpdate()
+                    ->first();
+
+                // Produto indisponível.
+                if (
+                    $product === null ||
+                    !$product->is_active ||
+                    $product->stock < 1
+                ) {
+                    $warnings[] = "O produto {$guestItem->product_id} foi removido porque está indisponível.";
+
+                    $guestItem->delete();
+
+                    continue;
+                }
+
+                // Verifica se o produto já existe no carrinho do usuário.
+                $userItem = CartItem::where('cart_id', $userCart->id)
+                    ->where('product_id', $product->id)
+                    ->lockForUpdate()
+                    ->first();
+
+                $currentQuantity = $userItem?->quantity ?? 0;
+
+                $newQuantity = $currentQuantity + $guestItem->quantity;
+
+                // Ajusta a quantidade caso ultrapasse o estoque.
+                if ($newQuantity > $product->stock) {
+                    $newQuantity = $product->stock;
+
+                    $warnings[] = "A quantidade do produto {$product->name} foi ajustada ao estoque disponível.";
+                }
+
+                if ($userItem !== null) {
+                    $userItem->update([
+                        'quantity' => $newQuantity,
+                    ]);
+                } else {
+                    CartItem::create([
+                        'cart_id' => $userCart->id,
+                        'product_id' => $product->id,
+                        'quantity' => $newQuantity,
+                    ]);
+                }
+
+                // Remove o item do carrinho de visitante.
+                $guestItem->delete();
+            }
+
+            // Invalida o carrinho de visitante após a transferência.
+            $guestCart->delete();
+
+            return [
+                'cart' => $this->getCart($userCart),
+                'warnings' => $warnings,
+            ];
+           });
+    }
 }

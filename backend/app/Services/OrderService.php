@@ -124,4 +124,25 @@ class OrderService
             . '.'
             . str_pad((string) ($cents % 100), 2, '0', STR_PAD_LEFT);
     }
+
+    /**
+     * Retorna os pedidos do cliente autenticado.
+     */
+    public function getUserOrders(User $user)
+    {
+        return Order::where('user_id', $user->id)
+            ->with('items')
+            ->latest()
+            ->paginate(10);
+    }
+
+    /**
+     * Retorna um pedido específico do cliente autenticado.
+     */
+    public function findUserOrder(User $user, int $orderId): Order
+    {
+        return Order::where('user_id', $user->id)
+            ->with('items')
+            ->findOrFail($orderId);
+    }
 }

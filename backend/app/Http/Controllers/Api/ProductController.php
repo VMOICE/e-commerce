@@ -5,17 +5,19 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreProductRequest;
 use App\Http\Requests\UpdateProductRequest;
+use App\Http\Resources\ProductResource;
 use App\Models\Product;
 use App\Services\ProductService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class ProductController extends Controller
 {
     public function index(
         Request $request,
         ProductService $productService
-    ): JsonResponse {
+    ): AnonymousResourceCollection {
         $validated = $request->validate([
             'search' => ['sometimes', 'string', 'max:150'],
             'category_id' => ['sometimes', 'integer', 'min:1'],
@@ -25,18 +27,16 @@ class ProductController extends Controller
 
         $products = $productService->paginateActive($validated);
 
-        return response()->json($products);
+        return ProductResource::collection($products);
     }
 
     public function show(
         int $id,
         ProductService $productService
-    ): JsonResponse {
+    ): ProductResource {
         $product = $productService->findActiveById($id);
 
-        return response()->json([
-            'data' => $product,
-        ]);
+        return new ProductResource($product);
     }
 
     public function store(
@@ -47,7 +47,7 @@ class ProductController extends Controller
 
         return response()->json([
             'message' => 'Produto cadastrado com sucesso.',
-            'data' => $product,
+            'data' => new ProductResource($product),
         ], 201);
     }
 
@@ -63,7 +63,7 @@ class ProductController extends Controller
 
         return response()->json([
             'message' => 'Produto atualizado com sucesso.',
-            'data' => $updatedProduct,
+            'data' => new ProductResource($updatedProduct),
         ]);
     }
 

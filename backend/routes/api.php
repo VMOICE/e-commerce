@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\CartController;
+use App\Http\Controllers\Api\OrderController;
 
 // Verificação da API
 Route::get('/health', [HealthController::class, 'index']);
@@ -26,6 +27,11 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/me', [AuthController::class, 'me']);
     Route::post('/logout', [AuthController::class, 'logout']);
+
+    // Pedidos
+    Route::get('/orders', [OrderController::class, 'index']);
+    Route::get('/orders/{id}', [OrderController::class, 'show'])->whereNumber('id');
+    Route::post('/orders', [OrderController::class, 'store']);
 });
 
 // Carrinho
@@ -56,4 +62,12 @@ Route::middleware(['auth:sanctum', 'admin'])
         Route::put('/categories/{category}', [CategoryController::class, 'update']);
         Route::patch('/categories/{category}', [CategoryController::class, 'update']);
         Route::delete('/categories/{category}', [CategoryController::class, 'destroy']);
+
+        // Gerenciamento de pedidos
+        Route::get('/orders', [OrderController::class, 'adminIndex']);
+
+        Route::get('/orders/{id}', [OrderController::class, 'adminShow'])
+            ->whereNumber('id');
+
+        Route::patch('/orders/{order}/status', [OrderController::class, 'updateStatus']);
     });

@@ -6,29 +6,8 @@
     <title>E-commerce</title>
 </head>
 <body>
-    <main>
-        <h1>Loja Virtual</h1>
-        <p>Frontend iniciado com sucesso.</p>
-        <p id="api-status">Verificando API...</p>
-    </main>
+    <div id="app"></div>
 
-    <script>
-        const apiStatus = document.querySelector("#api-status");
-
-        fetch("http://localhost:8081/")
-            .then((response) => {
-                if (response.ok) {
-                    apiStatus.textContent =
-                        "A API está respondendo.";
-                } else {
-                    apiStatus.textContent =
-                        "A API respondeu com status " + response.status + ".";
-                }
-            })
-            .catch(() => {
-                apiStatus.textContent =
-                    "Não foi possível acessar a API.";
-            });
-    </script>
+    <script type="module" src="/src/main.js"></script>
 </body>
 </html>

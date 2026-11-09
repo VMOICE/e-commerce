@@ -1,4 +1,4 @@
-import { getState } from "../app/state.js";
+import { getState, subscribe } from "../app/state.js";
 
 export function renderApp() {
     const app = document.querySelector("#app");
@@ -9,12 +9,12 @@ export function renderApp() {
     }
 
     if (state.loading) {
-        app.innerHTML = "<p>Carregando aplicação...</p>";
+        app.textContent = "Carregando aplicação...";
         return;
     }
 
     if (state.error) {
-        app.innerHTML = `<p>${state.error}</p>`;
+        app.textContent = state.error;
         return;
     }
 
@@ -34,24 +34,23 @@ export function renderApp() {
 
             <section>
                 <h2>Carrinho</h2>
-                <p>
-                    ${
-                        state.cart?.items?.length ??
-                        0
-                    } itens no carrinho.
-                </p>
+                <p>${state.cart?.items?.length ?? 0} itens no carrinho.</p>
             </section>
 
             <section>
                 <h2>Autenticação</h2>
                 <p>
-                    ${
-                        state.isAuthenticated
-                            ? "Usuário autenticado."
-                            : "Visitante."
-                    }
+                    ${state.isAuthenticated
+                        ? "Usuário autenticado."
+                        : "Visitante."}
                 </p>
             </section>
         </main>
     `;
+}
+
+export function observeState() {
+    subscribe(() => {
+        renderApp();
+    });
 }

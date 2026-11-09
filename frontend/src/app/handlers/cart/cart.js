@@ -6,45 +6,72 @@ import {
     clearCart,
 } from "../../../api/cart.js";
 
+import { setState } from "../../state.js";
+
+// Carrega o carrinho atual.
 export async function loadCart() {
     try {
-        return await getCart();
+        const cart = await getCart();
+
+        setState({ cart });
+
+        return cart;
     } catch (error) {
         console.error("Erro ao carregar carrinho:", error);
         throw error;
     }
 }
 
+// Adiciona um produto ao carrinho.
 export async function addProductToCart(productId, quantity = 1) {
     try {
-        return await addToCart(productId, quantity);
+        const cart = await addToCart(productId, quantity);
+
+        setState({ cart });
+
+        return cart;
     } catch (error) {
         console.error("Erro ao adicionar produto ao carrinho:", error);
         throw error;
     }
 }
 
-export async function changeCartItemQuantity(itemId, quantity) {
+// Atualiza a quantidade de um produto.
+export async function changeCartItemQuantity(productId, quantity) {
     try {
-        return await updateCartItem(itemId, quantity);
+        const cart = await updateCartItem(productId, quantity);
+
+        setState({ cart });
+
+        return cart;
     } catch (error) {
         console.error("Erro ao atualizar quantidade:", error);
         throw error;
     }
 }
 
-export async function removeProductFromCart(itemId) {
+// Remove um produto do carrinho.
+export async function removeProductFromCart(productId) {
     try {
-        return await removeCartItem(itemId);
+        const cart = await removeCartItem(productId);
+
+        setState({ cart });
+
+        return cart;
     } catch (error) {
         console.error("Erro ao remover produto do carrinho:", error);
         throw error;
     }
 }
 
+// Esvazia o carrinho.
 export async function emptyCart() {
     try {
-        return await clearCart();
+        const cart = await clearCart();
+
+        setState({ cart });
+
+        return cart;
     } catch (error) {
         console.error("Erro ao limpar carrinho:", error);
         throw error;

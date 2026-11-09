@@ -13,37 +13,48 @@ export async function initializeApp() {
     });
 
     try {
-        const [products, categories] = await Promise.all([
+        // Carrega os dados públicos do catálogo.
+        await Promise.all([
             loadProducts(),
             loadCategories(),
         ]);
 
-        setState({
-            products,
-            categories,
-        });
-
+        // Verifica se existe um token de autenticação.
         const token = localStorage.getItem("auth_token");
 
         if (token) {
-            const user = await loadAuthenticatedUser();
+            try {
+                // Valida a sessão e carrega o usuário.
+                await loadAuthenticatedUser();
+            } catch (error) {
+                // Trata especificamente tokens expirados ou inválidos.
+                if (error.response?.status !== 401) {
+                    throw error;
+                }
 
-            const [cart, orders] = await Promise.all([
+                localStorage.removeItem("auth_token");
+
+                setState({
+                    user: null,
+                    isAuthenticated: false,
+                    orders: [],
+                });
+            }
+        }
+
+        // Carrega os dados conforme o estado da autenticação.
+        if (localStorage.getItem("auth_token")) {
+            await Promise.all([
                 loadCart(),
                 loadOrders(),
             ]);
-
-            setState({
-                user,
-                isAuthenticated: true,
-                cart,
-                orders,
-            });
         } else {
-            const cart = await loadCart();
+            await loadCart();
 
             setState({
-                cart,
+                user: null,
+                isAuthenticated: false,
+                orders: [],
             });
         }
     } catch (error) {

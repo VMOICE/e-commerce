@@ -1,48 +1,66 @@
-import http from "./http.js";
+import {
+    getCategories,
+    createCategory,
+    updateCategory,
+    deleteCategory,
+} from "../../../api/categories.js";
 
-/**
- * Consulta todas as categorias.
- */
-export async function getCategories() {
-    const response = await http.get("/categories");
+import { setState } from "../../state.js";
 
-    return response.data;
+// Carrega todas as categorias.
+export async function loadCategories() {
+    try {
+        const response = await getCategories();
+
+        const categories = response.data;
+
+        setState({ categories });
+
+        return categories;
+    } catch (error) {
+        console.error("Erro ao carregar categorias:", error);
+        throw error;
+    }
 }
 
-/**
- * Cadastra uma nova categoria.
- * Requer autenticação de administrador.
- */
-export async function createCategory(categoryData) {
-    const response = await http.post(
-        "/admin/categories",
-        categoryData
-    );
+// Cadastra uma nova categoria.
+export async function registerCategory(categoryData) {
+    try {
+        const response = await createCategory(categoryData);
 
-    return response.data;
+        await loadCategories();
+
+        return response;
+    } catch (error) {
+        console.error("Erro ao cadastrar categoria:", error);
+        throw error;
+    }
 }
 
-/**
- * Atualiza uma categoria existente.
- * Requer autenticação de administrador.
- */
-export async function updateCategory(id, categoryData) {
-    const response = await http.put(
-        `/admin/categories/${id}`,
-        categoryData
-    );
+// Atualiza uma categoria existente.
+export async function editCategory(id, categoryData) {
+    try {
+        const response = await updateCategory(id, categoryData);
 
-    return response.data;
+        await loadCategories();
+
+        return response;
+    } catch (error) {
+        console.error("Erro ao atualizar categoria:", error);
+        throw error;
+    }
 }
 
-/**
- * Exclui uma categoria.
- * Requer autenticação de administrador.
- */
-export async function deleteCategory(id) {
-    const response = await http.delete(
-        `/admin/categories/${id}`
-    );
+// Exclui uma categoria.
+export async function removeCategory(id) {
+    try {
+        const response = await deleteCategory(id);
 
-    return response.data;
+        await loadCategories();
+
+        return response;
+    } catch (error) {
+        console.error("Erro ao excluir categoria:", error);
+        throw error;
+    }
 }

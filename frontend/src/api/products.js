@@ -1,62 +1,76 @@
-import http from "./http.js";
+import {
+    getProducts,
+    getProduct,
+    createProduct,
+    updateProduct,
+    deactivateProduct,
+} from "../../../api/products.js";
 
-/**
- * Consulta os produtos do catálogo.
- *
- * Filtros disponíveis:
- * search, category_id, sort e per_page.
- */
-export async function getProducts(filters = {}) {
-    const response = await http.get("/products", {
-        params: filters,
-    });
+import { getState, setState } from "../../state.js";
 
-    return response.data;
+// Carrega a lista de produtos.
+export async function loadProducts(filters = {}) {
+    try {
+        const response = await getProducts(filters);
+        const products = response.data;
+
+        setState({ products });
+
+        return products;
+    } catch (error) {
+        console.error("Erro ao carregar produtos:", error);
+        throw error;
+    }
 }
 
-/**
- * Consulta um produto específico.
- */
-export async function getProduct(id) {
-    const response = await http.get(`/products/${id}`);
-
-    return response.data;
+// Carrega um produto específico.
+export async function loadProduct(id) {
+    try {
+        return await getProduct(id);
+    } catch (error) {
+        console.error("Erro ao carregar produto:", error);
+        throw error;
+    }
 }
 
-/**
- * Cadastra um novo produto.
- * Requer autenticação de administrador.
- */
-export async function createProduct(productData) {
-    const response = await http.post(
-        "/admin/products",
-        productData
-    );
+// Cadastra um novo produto e atualiza a lista.
+export async function registerProduct(productData) {
+    try {
+        const response = await createProduct(productData);
 
-    return response.data;
+        await loadProducts(getState().productFilters ?? {});
+
+        return response;
+    } catch (error) {
+        console.error("Erro ao cadastrar produto:", error);
+        throw error;
+    }
 }
 
-/**
- * Atualiza os dados de um produto.
- * Requer autenticação de administrador.
- */
-export async function updateProduct(id, productData) {
-    const response = await http.put(
-        `/admin/products/${id}`,
-        productData
-    );
+// Atualiza um produto e atualiza a lista.
+export async function editProduct(id, productData) {
+    try {
+        const response = await updateProduct(id, productData);
 
-    return response.data;
+        await loadProducts(getState().productFilters ?? {});
+
+        return response;
+    } catch (error) {
+        console.error("Erro ao atualizar produto:", error);
+        throw error;
+    }
 }
 
-/**
- * Desativa um produto.
- * Requer autenticação de administrador.
- */
-export async function deactivateProduct(id) {
-    const response = await http.delete(
-        `/admin/products/${id}`
-    );
+// Desativa um produto e atualiza a lista.
+export async function removeProduct(id) {
+    try {
+        const response = await deactivateProduct(id);
 
-    return response.data;
+        await loadProducts(getState().productFilters ?? {});
+
+        return response;
+    } catch (error) {
+        console.error("Erro ao desativar produto:", error);
+        throw error;
+    }
 }

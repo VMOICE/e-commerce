@@ -1,77 +1,42 @@
-import {
-    register,
-    login,
-    getMe,
-    logout,
-} from "../../../api/auth.js";
+import http from "./http.js";
 
-import { setState } from "../../state.js";
-import { loadCart } from "../cart/cart.js";
+// Cadastra um novo usuário.
+export async function register(userData) {
+    const response = await http.post("/register", userData);
 
-export async function registerUser(userData) {
-    try {
-        const response = await register(userData);
+    const { token } = response.data;
 
-        setState({
-            user: response.user,
-            isAuthenticated: true,
-            cart: response.cart,
-        });
+    localStorage.setItem("auth_token", token);
+    localStorage.removeItem("guest_cart_token");
 
-        return response;
-    } catch (error) {
-        console.error("Erro ao cadastrar usuário:", error);
-        throw error;
-    }
+    return response.data;
 }
 
-export async function loginUser(credentials) {
-    try {
-        const response = await login(credentials);
+// Realiza o login.
+export async function login(credentials) {
+    const response = await http.post("/login", credentials);
 
-        setState({
-            user: response.user,
-            isAuthenticated: true,
-            cart: response.cart,
-        });
+    const { token } = response.data;
 
-        return response;
-    } catch (error) {
-        console.error("Erro ao realizar login:", error);
-        throw error;
-    }
+    localStorage.setItem("auth_token", token);
+    localStorage.removeItem("guest_cart_token");
+
+    return response.data;
 }
 
-export async function loadAuthenticatedUser() {
-    try {
-        const user = await getMe();
+// Recupera os dados do usuário autenticado.
+export async function getMe() {
+    const response = await http.get("/me");
 
-        setState({
-            user,
-            isAuthenticated: true,
-        });
-
-        return user;
-    } catch (error) {
-        console.error("Erro ao carregar usuário autenticado:", error);
-        throw error;
-    }
+    return response.data.user;
 }
 
-export async function logoutUser() {
-    try {
-        const response = await logout();
+// Realiza o logout.
+export async function logout() {
+    const response = await http.post("/logout");
 
-        setState({
-            user: null,
-            isAuthenticated: false,
-            cart: null,
-            orders: [],
-        });
+    localStorage.removeItem("auth_token");
+    localStorage.removeItem("guest_cart_token");
 
-        return response;
-    } catch (error) {
-        console.error("Erro ao realizar logout:", error);
-        throw error;
-    }
+    return response.data;
 }

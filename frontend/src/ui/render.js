@@ -1,3 +1,4 @@
+import { getCartItemCount } from "../domain/cart.js";
 import { getState, subscribe } from "../app/state.js";
 
 export function renderApp() {
@@ -34,7 +35,7 @@ export function renderApp() {
 
             <section>
                 <h2>Carrinho</h2>
-                <p>${state.cart?.items?.length ?? 0} itens no carrinho.</p>
+                <p>${getCartItemCount(state.cart)} itens no carrinho.</p>
             </section>
 
             <section>

@@ -5,36 +5,59 @@ import {
     deleteCategory,
 } from "../../../api/categories.js";
 
+import { setState } from "../../state.js";
+
+// Carrega todas as categorias.
 export async function loadCategories() {
     try {
-        return await getCategories();
+        const response = await getCategories();
+        const categories = response.data;
+
+        setState({ categories });
+
+        return categories;
     } catch (error) {
         console.error("Erro ao carregar categorias:", error);
         throw error;
     }
 }
 
+// Cadastra uma nova categoria e atualiza a lista.
 export async function registerCategory(categoryData) {
     try {
-        return await createCategory(categoryData);
+        const response = await createCategory(categoryData);
+
+        await loadCategories();
+
+        return response;
     } catch (error) {
         console.error("Erro ao cadastrar categoria:", error);
         throw error;
     }
 }
 
+// Atualiza uma categoria e atualiza a lista.
 export async function editCategory(id, categoryData) {
     try {
-        return await updateCategory(id, categoryData);
+        const response = await updateCategory(id, categoryData);
+
+        await loadCategories();
+
+        return response;
     } catch (error) {
         console.error("Erro ao atualizar categoria:", error);
         throw error;
     }
 }
 
+// Exclui uma categoria e atualiza a lista.
 export async function removeCategory(id) {
     try {
-        return await deleteCategory(id);
+        const response = await deleteCategory(id);
+
+        await loadCategories();
+
+        return response;
     } catch (error) {
         console.error("Erro ao excluir categoria:", error);
         throw error;

@@ -10,12 +10,20 @@ import { getState, setState } from "../../state.js";
 
 export async function loadProducts(filters = {}) {
     try {
-        const response = await getProducts(filters);
+        const normalizedFilters = { ...filters };
+        if (!normalizedFilters.category_id) {
+            delete normalizedFilters.category_id;
+        }
+        if (!normalizedFilters.search) {
+            delete normalizedFilters.search;
+        }
+
+        const response = await getProducts(normalizedFilters);
         const products = response.data;
 
         setState({
             products,
-            productFilters: filters,
+            productFilters: normalizedFilters,
             productPagination: {
                 currentPage: response.meta?.current_page ?? 1,
                 lastPage: response.meta?.last_page ?? 1,

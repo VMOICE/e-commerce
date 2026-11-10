@@ -29,23 +29,23 @@ X  O visitante consegue adicionar itens ao carrinho sem estar autenticado.
 X  O carrinho é identificado pela sessão, gerada pela API e guardado pelo frontend.
 X  O carrinho do visitante é persistido no banco e sobrevive a recarregar a página e a fechar o navegador.
 X  Permite alterar a quantidade e remover itens.
-☐  Exibe subtotal por item e total do carrinho, sempre calculados pelo servidor.
-☐  Adicionar um produto já presente no carrinho soma a quantidade, sem duplicar a linha.
-☐  Ao tentar finalizar a compra, o visitante é direcionado ao login ou registro sem perder o carrinho.
+X  Exibe subtotal por item e total do carrinho, sempre calculados pelo servidor.
+X  Adicionar um produto já presente no carrinho soma a quantidade, sem duplicar a linha.
+X  Ao tentar finalizar a compra, o visitante é direcionado ao login ou registro sem perder o carrinho.
 4.5 Carrinho após o login
-☐  Ao autenticar, o carrinho de visitante é fundido com o carrinho da conta.
-☐  A regra de fusão está implementada e o aluno sabe explicá-la (ver seção 5).
-☐  Após a fusão, a sessão inicial de visitante deixa de valer e não gera um segundo carrinho.
-☐  Um usuário autenticado tem no máximo um carrinho ativo.
-☐  O carrinho da conta persiste entre sessões e entre dispositivos.
-☐  Itens indisponíveis (produto inativo ou sem estoque) são sinalizados no carrinho.
-☐  O total é sempre recalculado no servidor; valores enviados pelo cliente são ignorados.
+X  Ao autenticar, o carrinho de visitante é fundido com o carrinho da conta.
+----  A regra de fusão está implementada e o aluno sabe explicá-la (ver seção 5).
+X  Após a fusão, a sessão inicial de visitante deixa de valer e não gera um segundo carrinho.
+X  Um usuário autenticado tem no máximo um carrinho ativo.
+X  O carrinho da conta persiste entre sessões e entre dispositivos.
+X  Itens indisponíveis (produto inativo ou sem estoque) são sinalizados no carrinho.
+X  O total é sempre recalculado no servidor; valores enviados pelo cliente são ignorados.
 4.6 Checkout
-☐  Exige usuário autenticado.
-☐  Permite cadastrar ou selecionar um endereço de entrega.
-☐  Exibe o resumo do pedido: itens, quantidades, preços unitários, frete e total.
-☐  Carrinho vazio não permite finalizar, com erro claro (422).
-☐  Item sem estoque suficiente impede a finalização e informa qual produto falhou.
+X  Exige usuário autenticado.
+X  Permite cadastrar ou selecionar um endereço de entrega.
+X  Exibe o resumo do pedido: itens, quantidades, preços unitários, frete e total.
+X  Carrinho vazio não permite finalizar, com erro claro (422).
+X  Item sem estoque suficiente impede a finalização e informa qual produto falhou.
 ☐  Ao confirmar, é criado um pedido com status “aguardando pagamento”.
 ☐  O estoque dos produtos é decrementado na criação do pedido.
 ☐  O carrinho é esvaziado após a criação do pedido.

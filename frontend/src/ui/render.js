@@ -788,7 +788,10 @@ function bindEvents(app, page, id) {
         form.addEventListener("submit", async (event) => {
             event.preventDefault();
             try {
-                await changeCartItemQuantity(Number(form.dataset.cartForm), Number(new FormData(form).get("quantity")));
+                await changeCartItemQuantity(
+                    Number(form.dataset.cartForm),
+                    Number(new FormData(form).get("quantity"))
+                );
             } catch (error) { showError(error); }
         });
     });
@@ -1011,6 +1014,9 @@ function renderPage(state, page, id) {
 export function renderApp() {
     const app = document.querySelector("#app");
     if (!app) throw new Error("Elemento #app não encontrado.");
+    const activeCartProduct = app.contains(document.activeElement)
+        ? document.activeElement.closest("[data-cart-form]")?.dataset.cartForm ?? null
+        : null;
     const state = getState();
     const { page, id } = currentRoute();
     const requiresAuthentication = ["checkout", "pedidos", "pedido", "conta"].includes(page);
@@ -1042,6 +1048,11 @@ export function renderApp() {
         </div>
     `;
     bindEvents(app, page, id);
+
+    if (activeCartProduct !== null) {
+        app.querySelector(`[data-cart-form="${activeCartProduct}"] input[name="quantity"]`)
+            ?.focus({ preventScroll: true });
+    }
 }
 
 export function observeState() {

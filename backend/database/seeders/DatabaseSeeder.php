@@ -347,9 +347,10 @@ class DatabaseSeeder extends Seeder
         ];
 
         foreach ($products as $productData) {
+            $categorySlug = $productData['category'];
             $category = Category::where(
                 'slug',
-                $productData['category']
+                $categorySlug
             )->firstOrFail();
 
             unset($productData['category']);
@@ -358,6 +359,8 @@ class DatabaseSeeder extends Seeder
                 ['slug' => $productData['slug']],
                 array_merge($productData, [
                     'category_id' => $category->id,
+                    'image_path' => $productData['image_path']
+                        ?? "images/categories/{$categorySlug}.svg",
                 ])
             );
         }

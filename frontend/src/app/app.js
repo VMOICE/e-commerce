@@ -28,6 +28,7 @@ export async function initializeApp() {
                 setState({
                     user: null,
                     isAuthenticated: false,
+                    authInitialized: true,
                     orders: [],
                 });
 

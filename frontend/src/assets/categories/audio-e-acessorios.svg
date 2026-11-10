@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 420">
+  <rect width="640" height="420" rx="28" fill="#f1e9e7"/>
+  <circle cx="492" cy="104" r="54" fill="#e5d5d0"/>
+  <path d="M196 220v-26c0-69 56-125 124-125s124 56 124 125v26" fill="none" stroke="#718596" stroke-linecap="round" stroke-width="24"/>
+  <rect x="178" y="202" width="72" height="128" rx="30" fill="#526575"/>
+  <rect x="390" y="202" width="72" height="128" rx="30" fill="#526575"/>
+  <rect x="193" y="218" width="42" height="82" rx="19" fill="#dce7ed"/>
+  <rect x="405" y="218" width="42" height="82" rx="19" fill="#dce7ed"/>
+  <path d="M214 330v18c0 16 13 29 29 29h32M426 330v18c0 16-13 29-29 29h-32" fill="none" stroke="#718596" stroke-linecap="round" stroke-width="11"/>
+  <text x="320" y="400" fill="#526575" font-family="Arial,sans-serif" font-size="18" text-anchor="middle">Áudio e acessórios</text>
+</svg>

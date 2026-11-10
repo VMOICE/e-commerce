@@ -1,3 +1,8 @@
+import accessoryIllustration from "../assets/categories/acessorios.svg";
+import audioIllustration from "../assets/categories/audio-e-acessorios.svg";
+import protectionIllustration from "../assets/categories/capas-e-protecao.svg";
+import chargingIllustration from "../assets/categories/carregadores-e-cabos.svg";
+
 import {
     getAddresses,
     createAddress,
@@ -49,6 +54,11 @@ import { getState, setState, subscribe } from "../app/state.js";
 const storageBaseUrl = import.meta.env.VITE_STORAGE_BASE_URL
     ?? (import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8081/api")
         .replace(/\/api\/?$/, "/storage");
+const categoryImagePaths = {
+    "capas-e-protecao": protectionIllustration,
+    "carregadores-e-cabos": chargingIllustration,
+    "audio-e-acessorios": audioIllustration,
+};
 
 function escapeHTML(value) {
     return String(value ?? "").replace(/[&<>"']/g, (character) => ({
@@ -67,11 +77,16 @@ function formatPrice(value) {
     });
 }
 
-function productImage(imagePath) {
-    if (!imagePath) return "";
-    return /^https?:\/\//i.test(imagePath)
-        ? imagePath
-        : `${storageBaseUrl}/${String(imagePath).replace(/^\/+/, "")}`;
+function productImage(imagePath, categorySlug) {
+    if (/^https?:\/\//i.test(imagePath)) {
+        return imagePath;
+    }
+
+    if (!imagePath || String(imagePath).startsWith("images/categories/")) {
+        return categoryImagePaths[categorySlug] ?? accessoryIllustration;
+    }
+
+    return `${storageBaseUrl}/${String(imagePath).replace(/^\/+/, "")}`;
 }
 
 function currentRoute() {
@@ -174,13 +189,11 @@ function renderFilters(state) {
 }
 
 function renderProductCard(product) {
-    const image = productImage(product.image_path);
+    const image = productImage(product.image_path, product.category?.slug);
     return `
         <article class="product-card">
             <a class="product-image" href="#produto/${Number(product.id)}">
-                ${image
-                    ? `<img src="${escapeHTML(image)}" alt="${escapeHTML(product.name)}">`
-                    : `<span class="text-secondary">Sem imagem</span>`}
+                <img src="${escapeHTML(image)}" alt="${escapeHTML(product.name)}">
             </a>
             <div class="product-info">
                 <span class="text-secondary">${escapeHTML(product.category?.name ?? "Produto")}</span>
@@ -197,17 +210,30 @@ function renderProductCard(product) {
 }
 
 function renderCatalog(state, categoriesOnly = false) {
+    if (state.loading) return `<p class="text-secondary">Carregando produtos...</p>`;
+    if (state.error) return `<p class="message error">${escapeHTML(state.error)}</p>`;
+
+    if (categoriesOnly && !state.productFilters?.category_id) {
+        return state.categories.length
+            ? `<div class="category-grid">${state.categories.map((category) => `
+                <button class="category-card" type="button" data-category-select="${Number(category.id)}">
+                    <span class="category-card-icon" aria-hidden="true">▧</span>
+                    <strong>${escapeHTML(category.name)}</strong>
+                    <span>${Number(category.products_count ?? 0)} produtos</span>
+                </button>
+            `).join("")}</div>`
+            : `<p class="empty-state">Nenhuma categoria disponível.</p>`;
+    }
+
     const products = categoriesOnly
         ? state.products.filter((product) => Number(product.category_id) === Number(state.productFilters?.category_id))
         : state.products;
 
-    if (state.loading) return `<p class="text-secondary">Carregando produtos...</p>`;
-    if (state.error) return `<p class="message error">${escapeHTML(state.error)}</p>`;
     if (!products.length) return `<p class="empty-state">Nenhum produto encontrado.</p>`;
 
     return `
         <div class="product-grid">${products.map(renderProductCard).join("")}</div>
-        ${!categoriesOnly ? renderPagination(state) : ""}
+        ${renderPagination(state)}
     `;
 }
 
@@ -247,13 +273,12 @@ function renderProductDetail(state, id) {
         loadProduct(id).then((data) => setState({ productDetail: data })).catch(showError);
         return `<p class="text-secondary">Carregando produto...</p>`;
     }
+    const image = productImage(product.image_path, product.category?.slug);
     return `
         <a href="#catalogo">← Voltar ao catálogo</a>
         <article class="detail-layout panel">
             <div class="product-image detail-image">
-                ${productImage(product.image_path)
-                    ? `<img src="${escapeHTML(productImage(product.image_path))}" alt="${escapeHTML(product.name)}">`
-                    : `<span>Sem imagem</span>`}
+                <img src="${escapeHTML(image)}" alt="${escapeHTML(product.name)}">
             </div>
             <div>
                 <p class="text-secondary">${escapeHTML(product.category?.name)}</p>
@@ -392,9 +417,26 @@ function renderCheckout(state) {
             .catch(showError);
     }
     const addresses = state.addresses ?? [];
+    const cartItems = state.cart.items;
     return `
         <h1 class="page-title">Finalizar compra</h1>
-        <p>Resumo: ${state.cart.items.length} produto(s) · total ${formatPrice(state.cart.total ?? state.cart.subtotal)} · frete grátis</p>
+        <section class="checkout-summary panel">
+            <h2>Resumo do pedido</h2>
+            <ul class="checkout-items">
+                ${cartItems.map((item) => `
+                    <li class="checkout-item">
+                        <span>${escapeHTML(item.product?.name ?? "Produto indisponível")} × ${Number(item.quantity)}</span>
+                        <span>${formatPrice(item.product?.price ?? 0)} cada</span>
+                        <strong>${formatPrice(item.subtotal)}</strong>
+                    </li>
+                `).join("")}
+            </ul>
+            <dl class="checkout-totals">
+                <div><dt>Subtotal</dt><dd>${formatPrice(state.cart.subtotal)}</dd></div>
+                <div><dt>Frete</dt><dd>Grátis</dd></div>
+                <div><dt>Total</dt><dd>${formatPrice(state.cart.total ?? state.cart.subtotal)}</dd></div>
+            </dl>
+        </section>
         <p>Pagamento simulado para fins acadêmicos. Nenhum dado de cartão será solicitado.</p>
         <form id="checkout-form" class="panel form-panel stack">
             ${addresses.length
@@ -565,6 +607,13 @@ function bindEvents(app, page, id) {
         input.addEventListener("change", () => loadProducts({
             ...getState().productFilters,
             category_id: input.value,
+            page: 1,
+        }).catch(showError));
+    });
+    app.querySelectorAll("[data-category-select]").forEach((button) => {
+        button.addEventListener("click", () => loadProducts({
+            ...getState().productFilters,
+            category_id: button.dataset.categorySelect,
             page: 1,
         }).catch(showError));
     });
@@ -832,6 +881,20 @@ export function renderApp() {
     if (!app) throw new Error("Elemento #app não encontrado.");
     const state = getState();
     const { page, id } = currentRoute();
+    const requiresAuthentication = ["checkout", "pedidos", "pedido", "conta"].includes(page);
+
+    if (requiresAuthentication && !state.authInitialized) {
+        app.innerHTML = `<main class="page-container"><p class="text-secondary">${state.error
+            ? escapeHTML(state.error)
+            : "Verificando sua sessão..."}</p></main>`;
+        return;
+    }
+
+    if (requiresAuthentication && !state.isAuthenticated) {
+        sessionStorage.setItem("after-login", location.hash);
+        location.hash = "#login";
+        return;
+    }
 
     app.innerHTML = `
         <div class="app-layout">

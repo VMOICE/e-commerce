@@ -1,6 +1,7 @@
 const state = {
     user: null,
     isAuthenticated: false,
+    authInitialized: false,
 
     products: [],
     productFilters: {},

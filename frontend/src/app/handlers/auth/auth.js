@@ -14,6 +14,7 @@ export async function registerUser(userData) {
         setState({
             user: response.user,
             isAuthenticated: true,
+            authInitialized: true,
             cart: response.cart,
             addresses: [],
             addressesLoaded: false,
@@ -33,6 +34,7 @@ export async function loginUser(credentials) {
         setState({
             user: response.user,
             isAuthenticated: true,
+            authInitialized: true,
             cart: response.cart,
             addresses: [],
             addressesLoaded: false,
@@ -52,6 +54,7 @@ export async function loadAuthenticatedUser() {
         setState({
             user,
             isAuthenticated: true,
+            authInitialized: true,
         });
 
         return user;

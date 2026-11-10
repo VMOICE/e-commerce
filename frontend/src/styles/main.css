@@ -288,6 +288,41 @@ button {
     accent-color: var(--color-primary);
 }
 
+.category-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+    gap: 16px;
+}
+
+.category-card {
+    display: flex;
+    min-height: 150px;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 10px;
+    padding: 20px;
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    background: var(--color-card);
+    color: var(--color-text);
+    text-align: left;
+}
+
+.category-card:hover {
+    border-color: var(--color-primary);
+}
+
+.category-card-icon {
+    color: var(--color-primary);
+    font-size: 28px;
+}
+
+.category-card > span:last-child {
+    color: var(--color-text-secondary);
+    font-size: 13px;
+}
+
 /* ========================================
    PRODUTOS
 ======================================== */
@@ -351,6 +386,55 @@ button {
 .product-card .btn {
     width: 100%;
     margin-top: 12px;
+}
+
+.checkout-summary {
+    margin-bottom: 16px;
+}
+
+.checkout-summary h2 {
+    margin-top: 0;
+}
+
+.checkout-items {
+    display: grid;
+    gap: 10px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.checkout-item {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    gap: 16px;
+    align-items: center;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.checkout-totals {
+    display: grid;
+    gap: 8px;
+    max-width: 360px;
+    margin: 16px 0 0 auto;
+}
+
+.checkout-totals > div {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.checkout-totals dt,
+.checkout-totals dd {
+    margin: 0;
+}
+
+.checkout-totals > div:last-child {
+    padding-top: 8px;
+    border-top: 1px solid var(--color-border);
+    font-weight: 700;
 }
 
 /* ========================================
@@ -598,6 +682,20 @@ button {
     .product-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 10px;
+    }
+
+    .checkout-item {
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 6px 12px;
+    }
+
+    .checkout-item > span:nth-child(2) {
+        grid-column: 1;
+    }
+
+    .checkout-item > strong {
+        grid-column: 2;
+        grid-row: 1 / span 2;
     }
 
     .product-image {

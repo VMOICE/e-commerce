@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 420">
+  <rect width="640" height="420" rx="28" fill="#edf0e7"/>
+  <circle cx="144" cy="100" r="48" fill="#dce4d0"/>
+  <rect x="242" y="68" width="156" height="152" rx="26" fill="#718575"/>
+  <rect x="268" y="93" width="104" height="104" rx="15" fill="#f8faf5"/>
+  <path d="M320 114l-22 35h23l-8 29 31-41h-24l8-23z" fill="#718575"/>
+  <path d="M320 220v35c0 52-84 37-84 88v16c0 23 18 41 41 41h86c23 0 41-18 41-41v-26" fill="none" stroke="#526575" stroke-linecap="round" stroke-width="13"/>
+  <rect x="389" y="306" width="28" height="48" rx="8" fill="#526575"/>
+  <text x="320" y="400" fill="#526575" font-family="Arial,sans-serif" font-size="18" text-anchor="middle">Carregadores e cabos</text>
+</svg>

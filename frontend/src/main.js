@@ -5,7 +5,6 @@ import { observeState, renderApp } from "./ui/render.js";
 
 async function main() {
     observeState();
-
     renderApp();
 
     await initializeApp();

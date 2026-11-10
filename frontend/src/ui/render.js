@@ -1,3 +1,5 @@
+import { loadProducts } from "../app/handlers/products/products.js";
+import { addProductToCart } from "../app/handlers/cart/cart.js";
 import { getCartItemCount } from "../domain/cart.js";
 import { getState, subscribe } from "../app/state.js";
 
@@ -270,6 +272,103 @@ function renderMainContent(state) {
     `;
 }
 
+
+function normalizeFilters(filters) {
+    return Object.fromEntries(
+        Object.entries(filters).filter(
+            ([, value]) => value !== "" && value !== null && value !== undefined
+        )
+    );
+}
+
+function bindEvents() {
+    // Busca de produtos.
+    const searchForm = document.querySelector("#search-form");
+
+    searchForm?.addEventListener("submit", async (event) => {
+        event.preventDefault();
+
+        const search = document
+            .querySelector("#search-input")
+            .value.trim();
+
+        try {
+            await loadProducts(normalizeFilters({
+                ...getState().productFilters,
+                search,
+            }));
+        } catch (error) {
+            console.error("Erro na busca:", error);
+        }
+    });
+
+    // Filtro por categoria.
+    document.querySelectorAll('input[name="category"]')
+        .forEach((input) => {
+            input.addEventListener("change", async () => {
+                try {
+                    await loadProducts(normalizeFilters({
+                        ...getState().productFilters,
+                        category_id: input.value,
+                    }));
+                } catch (error) {
+                    console.error("Erro ao filtrar categoria:", error);
+                }
+            });
+        });
+
+    // Ordenação.
+    document.querySelector("#sort-filter")
+        ?.addEventListener("change", async (event) => {
+            try {
+                await loadProducts({
+                    ...getState().productFilters,
+                    sort: event.target.value,
+                });
+            } catch (error) {
+                console.error("Erro ao ordenar produtos:", error);
+            }
+        });
+
+    // Limpar filtros.
+    document.querySelector("#clear-filters")
+        ?.addEventListener("click", async () => {
+            try {
+                await loadProducts({
+                    sort: "newest",
+                });
+            } catch (error) {
+                console.error("Erro ao limpar filtros:", error);
+            }
+        });
+
+    // Adicionar ao carrinho.
+    document.querySelectorAll("[data-add-cart]")
+        .forEach((button) => {
+            button.addEventListener("click", async () => {
+                const productId = Number(button.dataset.addCart);
+
+                button.disabled = true;
+
+                try {
+                    await addProductToCart(productId);
+                    alert("Produto adicionado ao carrinho!");
+                } catch (error) {
+                    console.error("Erro ao adicionar ao carrinho:", error);
+
+                    alert(
+                        error.response?.data?.message ??
+                        "Não foi possível adicionar o produto ao carrinho."
+                    );
+                } finally {
+                    button.disabled = false;
+                }
+            });
+        });
+
+}
+
+
 // Renderiza toda a aplicação.
 export function renderApp() {
     const app = document.querySelector("#app");
@@ -292,6 +391,8 @@ export function renderApp() {
     if (sortFilter) {
         sortFilter.value = state.productFilters?.sort ?? "newest";
     }
+
+    bindEvents();
 }
 
 // Observa as alterações do estado.

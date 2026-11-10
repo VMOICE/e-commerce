@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\CartController;
 use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\AddressController;
+use App\Http\Controllers\Api\AdminUserController;
 
 // Verificação da API
 Route::get('/health', [HealthController::class, 'index']);
@@ -76,6 +77,7 @@ Route::middleware(['auth:web', 'admin'])
 
         // Gerenciamento de pedidos
         Route::get('/orders', [OrderController::class, 'adminIndex']);
+        Route::get('/users', [AdminUserController::class, 'index']);
 
         Route::get('/orders/{id}', [OrderController::class, 'adminShow'])
             ->whereNumber('id');

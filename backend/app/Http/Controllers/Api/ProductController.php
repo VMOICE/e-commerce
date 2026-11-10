@@ -19,6 +19,8 @@ class ProductController extends Controller
         ProductService $productService
     ): AnonymousResourceCollection {
         $validated = $request->validate([
+            'search' => ['sometimes', 'string', 'max:150'],
+            'is_active' => ['sometimes', 'in:0,1'],
             'per_page' => ['sometimes', 'integer', 'min:1', 'max:100'],
         ]);
 

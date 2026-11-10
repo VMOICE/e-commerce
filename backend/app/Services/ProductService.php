@@ -38,8 +38,20 @@ class ProductService
 
     public function paginateAll(array $filters): LengthAwarePaginator
     {
-        return Product::query()
-            ->with('category')
+        $query = Product::query()->with('category');
+
+        if (!empty($filters['search'])) {
+            $query->whereRaw(
+                'LOWER(name) LIKE LOWER(?)',
+                ['%' . $filters['search'] . '%']
+            );
+        }
+
+        if (array_key_exists('is_active', $filters)) {
+            $query->where('is_active', (bool) $filters['is_active']);
+        }
+
+        return $query
             ->orderByDesc('created_at')
             ->orderByDesc('id')
             ->paginate($filters['per_page'] ?? 50);

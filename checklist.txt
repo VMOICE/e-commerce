@@ -67,18 +67,18 @@ X  O cliente consegue cancelar um pedido enquanto ele estiver aguardando pagamen
 X  Acessível somente a usuários com papel admin.
 X  Permite criar, editar e excluir produtos (nome, descrição, preço, estoque, categoria, imagem e ativo/inativo).
 X  Permite criar, editar e excluir categorias.
-☐  Impede excluir categoria com produtos vinculados, ou adota outro comportamento claramente documentado.
-☐  Permite atualizar o estoque de um produto.
-☐  Lista todos os pedidos da loja, com filtro por status.
-☐  Permite avançar o status do pedido (pago → enviado → entregue), respeitando as transições válidas.
-☐  Excluir ou desativar um produto não quebra pedidos antigos (ver seção 5).
+X  Impede excluir categoria com produtos vinculados, ou adota outro comportamento claramente documentado.
+X  Permite atualizar o estoque de um produto.
+X  Lista todos os pedidos da loja, com filtro por status.
+X  Permite avançar o status do pedido (pago → enviado → entregue), respeitando as transições válidas.
+X  Excluir ou desativar um produto não quebra pedidos antigos (ver seção 5).
 4.10 Perfil e navegação
-☐  O usuário visualiza e edita seus dados e gerencia seus endereços.
-☐  A navegação principal dá acesso a Catálogo, Carrinho, Meus pedidos e Perfil; o admin também acessa o Painel.
-☐  O indicador do carrinho reflete a quantidade de itens, com e sem login.
-☐  O item ativo da navegação é visualmente identificado.
-☐  Rotas inexistentes possuem tratamento adequado, como redirecionamento ou página 404.
-☐  Rotas protegidas acessadas sem autenticação redirecionam para o login.
+X  O usuário visualiza e edita seus dados e gerencia seus endereços.
+X  A navegação principal dá acesso a Catálogo, Carrinho, Meus pedidos e Perfil; o admin também acessa o Painel.
+X  O indicador do carrinho reflete a quantidade de itens, com e sem login.
+X  O item ativo da navegação é visualmente identificado.
+X  Rotas inexistentes possuem tratamento adequado, como redirecionamento ou página 404.
+X  Rotas protegidas acessadas sem autenticação redirecionam para o login.
 
 
 10. Checklist de entrega

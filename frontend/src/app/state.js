@@ -17,6 +17,7 @@ const state = {
     orders: [],
     selectedOrder: null,
     selectedOrderNotFoundId: null,
+    adminUsers: undefined,
 
     feedback: null,
     loading: false,

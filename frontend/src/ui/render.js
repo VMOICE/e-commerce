@@ -10,6 +10,7 @@ import {
     deleteAddress,
 } from "../api/addresses.js";
 import { updateMe } from "../api/auth.js";
+import { getAdminUsers } from "../api/users.js";
 import {
     getAdminOrders,
     updateOrderStatus,
@@ -117,9 +118,14 @@ function statusLabel(status) {
 }
 
 function renderSidebar(state, page) {
+    const activePage = ({
+        inicio: "catalogo",
+        produto: "catalogo",
+        checkout: "carrinho",
+        pedido: "pedidos",
+    })[page] ?? page;
     const links = [
-        ["⌂", "Início", "#catalogo", "catalogo"],
-        ["▦", "Produtos", "#catalogo", "catalogo"],
+        ["▦", "Catálogo", "#catalogo", "catalogo"],
         ["◇", "Categorias", "#categorias", "categorias"],
         ["🛒", `Carrinho (${getCartItemCount(state.cart)})`, "#carrinho", "carrinho"],
         ["▤", "Meus pedidos", "#pedidos", "pedidos"],
@@ -135,7 +141,8 @@ function renderSidebar(state, page) {
             <a href="#catalogo" class="sidebar-logo" aria-label="MobileStore">M</a>
             <nav class="sidebar-menu" aria-label="Navegação principal">
                 ${links.map(([icon, label, href, key]) => `
-                    <a href="${href}" class="sidebar-link ${page === key ? "active" : ""}">
+                    <a href="${href}" class="sidebar-link ${activePage === key ? "active" : ""}"
+                        ${activePage === key ? 'aria-current="page"' : ""}>
                         <span aria-hidden="true">${icon}</span><span>${escapeHTML(label)}</span>
                     </a>
                 `).join("")}
@@ -158,8 +165,8 @@ function renderTopbar(state) {
                     ? `<span class="text-secondary">${escapeHTML(state.user?.name)}</span>
                        <button class="btn btn-secondary" type="button" id="logout-button">Sair</button>`
                     : `<a class="btn btn-secondary" href="#login">Entrar</a>`}
-                <a class="btn btn-secondary" href="#carrinho" aria-label="Carrinho">
-                    🛒 ${getCartItemCount(state.cart)}
+                <a class="btn btn-secondary cart-indicator" href="#carrinho" aria-label="Carrinho, ${getCartItemCount(state.cart)} itens">
+                    🛒 <span class="cart-count" aria-hidden="true">${getCartItemCount(state.cart)}</span>
                 </a>
             </div>
         </header>
@@ -577,24 +584,28 @@ function renderOrderDetail(state, id) {
     `;
 }
 
-function renderAdmin(state, section = "inicio") {
+function renderAdmin(state, section = "produtos") {
     if (state.user?.role !== "admin") return `<h1>Acesso restrito</h1><p>Somente administradores podem acessar esta área.</p>`;
     const sections = [
-        ["inicio", "Visão geral"],
-        ["cadastrar-produto", "Cadastrar produto"],
-        ["produtos", "Gerenciar produtos"],
+        ["produtos", "Produtos"],
         ["categorias", "Categorias"],
         ["pedidos", "Pedidos"],
+        ["usuarios", "Usuários"],
     ];
     if (!sections.some(([key]) => key === section)) {
-        section = "inicio";
+        section = "produtos";
     }
 
     if (section === "pedidos" && !Array.isArray(state.adminOrders)) {
         getAdminOrders().then((response) => setState({ adminOrders: response.data })).catch(showError);
     }
+    if (section === "usuarios" && !Array.isArray(state.adminUsers)) {
+        getAdminUsers()
+            .then((response) => setState({ adminUsers: response.data }))
+            .catch(showError);
+    }
     if (section === "produtos" && !Array.isArray(state.adminProducts)) {
-        getAdminProducts().then((response) => setState({ adminProducts: response.data })).catch(showError);
+        refreshAdminProducts().catch(showError);
     }
 
     return `
@@ -605,40 +616,40 @@ function renderAdmin(state, section = "inicio") {
                     href="#admin/${key}" ${section === key ? 'aria-current="page"' : ""}>${label}</a>
             `).join("")}
         </nav>
-        ${section === "inicio" ? `
-            <section class="admin-options" aria-label="Opções do painel">
-                ${sections.slice(1).map(([key, label]) => `
-                    <a class="panel admin-option" href="#admin/${key}">
-                        <h2>${label}</h2>
-                        <span class="text-secondary">${({
-                            "cadastrar-produto": "Adicione um produto ao catálogo.",
-                            produtos: "Edite informações, estoque e status dos produtos.",
-                            categorias: "Cadastre, edite ou remova categorias.",
-                            pedidos: "Consulte pedidos e atualize seus status.",
-                        })[key]}</span>
-                    </a>
-                `).join("")}
-            </section>
-        ` : ""}
-        ${section === "cadastrar-produto" ? `
-            <form id="admin-product-form" class="panel stack admin-form">
-                <h2>Cadastrar produto</h2>
-                <label>Nome<input class="form-control" name="name" required></label>
-                <label>Slug<input class="form-control" name="slug" required></label>
-                <label>Categoria<select class="form-control" name="category_id" required>
-                    ${(state.categories ?? []).map((category) => `<option value="${Number(category.id)}">${escapeHTML(category.name)}</option>`).join("")}
-                </select></label>
-                <label>Descrição<textarea class="form-control" name="description"></textarea></label>
-                <label>Preço<input class="form-control" name="price" type="number" min="0" step="0.01" required></label>
-                <label>Estoque<input class="form-control" name="stock" type="number" min="0" required></label>
-                <label>Caminho ou URL da imagem<input class="form-control" name="image_path" maxlength="255"></label>
-                <button class="btn">Salvar produto</button>
-            </form>
-        ` : ""}
         ${section === "produtos" ? `
-            <h2>Gerenciar produtos</h2>
+            <section class="panel stack admin-form">
+                <h2>Cadastrar produto</h2>
+                <form id="admin-product-form" class="stack">
+                    <label>Nome<input class="form-control" name="name" required></label>
+                    <label>Slug<input class="form-control" name="slug" required></label>
+                    <label>Categoria<select class="form-control" name="category_id" required>
+                        ${(state.categories ?? []).map((category) => `<option value="${Number(category.id)}">${escapeHTML(category.name)}</option>`).join("")}
+                    </select></label>
+                    <label>Descrição<textarea class="form-control" name="description"></textarea></label>
+                    <label>Preço<input class="form-control" name="price" type="number" min="0" step="0.01" required></label>
+                    <label>Estoque<input class="form-control" name="stock" type="number" min="0" required></label>
+                    <label>Caminho ou URL da imagem<input class="form-control" name="image_path" maxlength="255"></label>
+                    <button class="btn">Salvar produto</button>
+                </form>
+            </section>
+            <h2>Produtos cadastrados</h2>
+            <form id="admin-product-filters" class="admin-product-filters">
+                <label>Pesquisar por nome
+                    <input class="form-control" type="search" name="search" maxlength="150"
+                        value="${escapeHTML(state.adminProductFilters?.search ?? "")}"
+                        placeholder="Nome do produto">
+                </label>
+                <label>Status
+                    <select class="form-control" name="is_active">
+                        <option value="" ${state.adminProductFilters?.is_active === undefined ? "selected" : ""}>Todos</option>
+                        <option value="1" ${state.adminProductFilters?.is_active === "1" ? "selected" : ""}>Ativos</option>
+                        <option value="0" ${state.adminProductFilters?.is_active === "0" ? "selected" : ""}>Inativos</option>
+                    </select>
+                </label>
+                <button class="btn btn-secondary">Pesquisar</button>
+            </form>
             ${Array.isArray(state.adminProducts) ? `
-                <div class="stack">${state.adminProducts.map((product) => `
+                ${state.adminProducts.length ? `<div class="stack">${state.adminProducts.map((product) => `
                     <form class="panel admin-edit-form" data-admin-product="${Number(product.id)}">
                         <strong>Produto #${Number(product.id)}</strong>
                         <label>Nome<input class="form-control" name="name" value="${escapeHTML(product.name)}" required></label>
@@ -657,7 +668,7 @@ function renderAdmin(state, section = "inicio") {
                         <button class="btn btn-secondary">Salvar alterações</button>
                         ${product.is_active ? `<button class="btn" type="button" data-deactivate-product="${Number(product.id)}">Desativar</button>` : ""}
                     </form>
-                `).join("")}</div>
+                `).join("")}</div>` : `<p class="text-secondary">Nenhum produto encontrado para esses filtros.</p>`}
             ` : `<p class="text-secondary">Carregando produtos...</p>`}
         ` : ""}
         ${section === "categorias" ? `
@@ -707,6 +718,31 @@ function renderAdmin(state, section = "inicio") {
                 `).join("")}</div>
             ` : `<p class="text-secondary">Carregando pedidos...</p>`}
         ` : ""}
+        ${section === "usuarios" ? `
+            <h2>Usuários cadastrados</h2>
+            ${Array.isArray(state.adminUsers) ? state.adminUsers.length ? `
+                <div class="table-scroll">
+                    <table class="admin-users-table">
+                        <thead>
+                            <tr>
+                                <th scope="col">Nome</th>
+                                <th scope="col">E-mail</th>
+                                <th scope="col">Privilégio da conta</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${state.adminUsers.map((user) => `
+                                <tr>
+                                    <td>${escapeHTML(user.name)}</td>
+                                    <td>${escapeHTML(user.email)}</td>
+                                    <td>${user.role === "admin" ? "Administrador" : "Cliente"}</td>
+                                </tr>
+                            `).join("")}
+                        </tbody>
+                    </table>
+                </div>
+            ` : `<p class="text-secondary">Nenhum usuário cadastrado.</p>` : `<p class="text-secondary">Carregando usuários...</p>`}
+        ` : ""}
     `;
 }
 
@@ -736,6 +772,22 @@ function showFeedback(type, message) {
             setState({ feedback: null });
         }
     }, 5000);
+}
+
+async function refreshAdminProducts(filters = getState().adminProductFilters ?? {}) {
+    const activeFilters = { ...filters };
+    if (!activeFilters.search) {
+        delete activeFilters.search;
+    }
+    if (activeFilters.is_active === "") {
+        delete activeFilters.is_active;
+    }
+
+    const response = await getAdminProducts(activeFilters);
+    setState({
+        adminProducts: response.data,
+        adminProductFilters: activeFilters,
+    });
 }
 
 function formValues(form) {
@@ -822,6 +874,13 @@ function bindEvents(app, page, id) {
             ...getState().productFilters,
             page: Number(button.dataset.page),
         }).catch(showError));
+    });
+    app.querySelector("#admin-product-filters")?.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const values = formValues(event.currentTarget);
+        try {
+            await refreshAdminProducts(values);
+        } catch (error) { showError(error); }
     });
     app.querySelectorAll("[data-add-product]").forEach((button) => {
         button.addEventListener("click", async () => {
@@ -1003,7 +1062,7 @@ function bindEvents(app, page, id) {
             values.stock = Number(values.stock);
             await createProduct(values);
             form.reset();
-            await loadProducts(getState().productFilters);
+            await refreshAdminProducts({});
             showSuccess("Produto cadastrado com sucesso.");
         } catch (error) { showError(error); }
     });
@@ -1027,8 +1086,7 @@ function bindEvents(app, page, id) {
                 values.stock = Number(values.stock);
                 values.is_active = values.is_active === "1";
                 await updateProduct(form.dataset.adminProduct, values);
-                const response = await getAdminProducts();
-                setState({ adminProducts: response.data });
+                await refreshAdminProducts();
                 await loadProducts(getState().productFilters);
                 showSuccess("Produto atualizado com sucesso.");
             } catch (error) { showError(error); }
@@ -1038,8 +1096,7 @@ function bindEvents(app, page, id) {
         button.addEventListener("click", async () => {
             try {
                 await deactivateProduct(button.dataset.deactivateProduct);
-                const response = await getAdminProducts();
-                setState({ adminProducts: response.data });
+                await refreshAdminProducts();
                 await loadProducts(getState().productFilters);
                 showSuccess("Produto desativado com sucesso.");
             } catch (error) { showError(error); }
@@ -1097,8 +1154,14 @@ function renderPage(state, page, id) {
         case "pedidos": return renderOrderList(state);
         case "pedido": return renderOrderDetail(state, id);
         case "conta": return renderAccount(state, id || "perfil");
-        case "admin": return renderAdmin(state, id || "inicio");
-        default: return `<h1>Página não encontrada</h1><a href="#catalogo">Voltar ao catálogo</a>`;
+        case "admin": return renderAdmin(state, id || "produtos");
+        default: return `
+            <section class="panel empty-state">
+                <h1>Página não encontrada</h1>
+                <p>O endereço acessado não corresponde a uma página disponível.</p>
+                <a class="btn" href="#catalogo">Voltar ao catálogo</a>
+            </section>
+        `;
     }
 }
 
@@ -1110,7 +1173,7 @@ export function renderApp() {
         : null;
     const state = getState();
     const { page, id } = currentRoute();
-    const requiresAuthentication = ["checkout", "pedidos", "pedido", "conta"].includes(page);
+    const requiresAuthentication = ["checkout", "pedidos", "pedido", "conta", "admin"].includes(page);
 
     if (requiresAuthentication && !state.authInitialized) {
         app.innerHTML = `<main class="page-container"><p class="text-secondary">${state.error

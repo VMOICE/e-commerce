@@ -85,6 +85,8 @@ export async function logoutUser() {
             selectedOrderNotFoundId: null,
             adminOrders: undefined,
             adminProducts: undefined,
+            adminUsers: undefined,
+            adminProductFilters: {},
         });
 
         return response;

@@ -18,6 +18,7 @@ class OrderWorkflowTest extends TestCase
 
     public function test_checkout_freezes_price_and_address_and_payment_is_simulated(): void
     {
+        /** @var User $user */
         $user = User::factory()->create();
         $product = $this->createProduct();
         $address = $this->createAddress($user);
@@ -51,7 +52,9 @@ class OrderWorkflowTest extends TestCase
 
     public function test_customer_cannot_cancel_paid_order_and_invalid_transition_returns_conflict(): void
     {
+        /** @var User $user */
         $user = User::factory()->create();
+        /** @var User $admin */
         $admin = User::factory()->create(['role' => 'admin']);
         $order = Order::create([
             'user_id' => $user->id,
@@ -76,7 +79,9 @@ class OrderWorkflowTest extends TestCase
 
     public function test_users_cannot_use_another_users_order_or_address(): void
     {
+        /** @var User $owner */
         $owner = User::factory()->create();
+        /** @var User $otherUser */
         $otherUser = User::factory()->create();
         $order = Order::create([
             'user_id' => $owner->id,
@@ -101,6 +106,7 @@ class OrderWorkflowTest extends TestCase
 
     public function test_cancelling_pending_order_restores_stock(): void
     {
+        /** @var User $user */
         $user = User::factory()->create();
         $product = $this->createProduct(['stock' => 3]);
         $address = $this->createAddress($user);

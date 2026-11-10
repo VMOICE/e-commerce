@@ -6,6 +6,11 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+/**
+ * @property int $id
+ * @property string $status
+ * @property \Illuminate\Support\Carbon|null $paid_at
+ */
 class Order extends Model
 {
     protected $fillable = [

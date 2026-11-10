@@ -117,6 +117,16 @@ function statusLabel(status) {
     })[status] ?? status;
 }
 
+function statusClass(status) {
+    return ({
+        pending: "pending",
+        paid: "paid",
+        shipped: "shipped",
+        delivered: "delivered",
+        cancelled: "cancelled",
+    })[status] ?? "unknown";
+}
+
 function renderSidebar(state, page) {
     const activePage = ({
         inicio: "catalogo",
@@ -533,7 +543,8 @@ function renderOrderList(state, includeTitle = true) {
                     <span>${formatDateTime(order.created_at)}</span>
                     ${order.paid_at ? `<span>Pagamento: ${formatDateTime(order.paid_at)}</span>` : ""}
                 </div>
-                <span>${statusLabel(order.status)}</span><strong>${formatPrice(order.total)}</strong>
+                <span class="order-status order-status--${statusClass(order.status)}">${statusLabel(order.status)}</span>
+                <strong>${formatPrice(order.total)}</strong>
                 <button class="btn btn-secondary" type="button" data-order-detail="${Number(order.id)}">Detalhes</button>
                 ${order.status === "pending" ? `<button class="btn" data-pay-order="${Number(order.id)}">Confirmar pagamento simulado</button><button class="btn btn-secondary" data-cancel-order="${Number(order.id)}">Cancelar</button>` : ""}
             </article>
@@ -575,7 +586,7 @@ function renderOrderDetail(state, id) {
     return `
         <a href="#pedidos">← Voltar aos pedidos</a>
         <h1 class="page-title">Pedido #${Number(order.id)}</h1>
-        <p>Status: ${statusLabel(order.status)}</p>
+        <p>Status: <span class="order-status order-status--${statusClass(order.status)}">${statusLabel(order.status)}</span></p>
         ${order.paid_at ? `<p>Pagamento confirmado em: ${formatDateTime(order.paid_at)}</p>` : ""}
         <p>Endereço: ${escapeHTML(order.shipping_address?.street)}, ${escapeHTML(order.shipping_address?.number)} — ${escapeHTML(order.shipping_address?.city)}/${escapeHTML(order.shipping_address?.state)}</p>
         <ul class="panel">${(order.items ?? []).map((item) => `<li>${escapeHTML(item.product_name)} · ${Number(item.quantity)} × ${formatPrice(item.unit_price)} = ${formatPrice(item.subtotal)}</li>`).join("")}</ul>
@@ -693,29 +704,52 @@ function renderAdmin(state, section = "produtos") {
             `).join("")}</div>
         ` : ""}
         ${section === "pedidos" ? `
-            <h2>Pedidos da loja</h2>
-            <label>Filtrar pedidos<select class="form-control" id="admin-status-filter">
-                <option value="">Todos os status</option>
-                ${["pending", "paid", "shipped", "delivered", "cancelled"].map((status) => `<option value="${status}">${statusLabel(status)}</option>`).join("")}
-            </select></label>
+            <section class="admin-orders-header">
+                <div>
+                    <h2>Pedidos da loja</h2>
+                    <p class="text-secondary">Acompanhe os pedidos e avance seus status conforme necessário.</p>
+                </div>
+                <label>Filtrar por status
+                    <select class="form-control" id="admin-status-filter">
+                        <option value="" ${!state.adminOrderFilter ? "selected" : ""}>Todos os status</option>
+                        ${["pending", "paid", "shipped", "delivered", "cancelled"].map((status) => `<option value="${status}" ${state.adminOrderFilter === status ? "selected" : ""}>${statusLabel(status)}</option>`).join("")}
+                    </select>
+                </label>
+            </section>
             ${Array.isArray(state.adminOrders) ? `
-                <div class="stack">${state.adminOrders.map((order) => `
-                    <form class="panel order-row" data-admin-order="${Number(order.id)}">
-                        <strong>Pedido #${Number(order.id)} — ${escapeHTML(order.user?.name)}</strong>
-                        <span>${statusLabel(order.status)} · ${formatPrice(order.total)}</span>
-                        <select class="form-control" name="status" required>
-                            <option value="" selected>Escolha uma transição</option>
-                            ${( {
-                                pending: ["paid", "cancelled"],
-                                paid: ["shipped"],
-                                shipped: ["delivered"],
-                                delivered: [],
-                                cancelled: [],
-                            }[order.status] ?? []).map((status) => `<option value="${status}">${statusLabel(status)}</option>`).join("")}
-                        </select>
-                        <button class="btn btn-secondary" ${["delivered", "cancelled"].includes(order.status) ? "disabled" : ""}>Atualizar status</button>
-                    </form>
-                `).join("")}</div>
+                ${state.adminOrders.length ? `
+                    <div class="stack admin-orders-list">${state.adminOrders.map((order) => `
+                        <form class="panel admin-order-card" data-admin-order="${Number(order.id)}">
+                            <div class="admin-order-summary">
+                                <div class="admin-order-customer">
+                                    <strong>Pedido #${Number(order.id)}</strong>
+                                    <span>${escapeHTML(order.user?.name ?? "Cliente")}</span>
+                                    ${order.user?.email ? `<span class="text-secondary">${escapeHTML(order.user.email)}</span>` : ""}
+                                </div>
+                                <div class="admin-order-meta">
+                                    <span class="order-status order-status--${statusClass(order.status)}">${statusLabel(order.status)}</span>
+                                    <strong>${formatPrice(order.total)}</strong>
+                                    <time datetime="${escapeHTML(order.created_at)}">${formatDateTime(order.created_at)}</time>
+                                </div>
+                            </div>
+                            <div class="admin-order-actions">
+                                <label>Avançar status
+                                    <select class="form-control" name="status" required ${["delivered", "cancelled"].includes(order.status) ? "disabled" : ""}>
+                                        <option value="" selected>${["delivered", "cancelled"].includes(order.status) ? "Pedido finalizado" : "Escolha uma transição"}</option>
+                                        ${( {
+                                            pending: ["paid", "cancelled"],
+                                            paid: ["shipped"],
+                                            shipped: ["delivered"],
+                                            delivered: [],
+                                            cancelled: [],
+                                        }[order.status] ?? []).map((status) => `<option value="${status}">${statusLabel(status)}</option>`).join("")}
+                                    </select>
+                                </label>
+                                <button class="btn btn-secondary" ${["delivered", "cancelled"].includes(order.status) ? "disabled" : ""}>Atualizar pedido</button>
+                            </div>
+                        </form>
+                    `).join("")}</div>
+                ` : `<p class="panel empty-state">Nenhum pedido encontrado${state.adminOrderFilter ? " com este status" : ""}.</p>`}
             ` : `<p class="text-secondary">Carregando pedidos...</p>`}
         ` : ""}
         ${section === "usuarios" ? `
@@ -1123,8 +1157,9 @@ function bindEvents(app, page, id) {
     });
     app.querySelector("#admin-status-filter")?.addEventListener("change", async (event) => {
         try {
-            const response = await getAdminOrders(event.target.value ? { status: event.target.value } : {});
-            setState({ adminOrders: response.data });
+            const status = event.target.value;
+            const response = await getAdminOrders(status ? { status } : {});
+            setState({ adminOrders: response.data, adminOrderFilter: status });
         } catch (error) { showError(error); }
     });
     app.querySelectorAll("[data-admin-order]").forEach((form) => {
@@ -1133,7 +1168,8 @@ function bindEvents(app, page, id) {
             try {
                 const status = new FormData(form).get("status");
                 await updateOrderStatus(form.dataset.adminOrder, status);
-                const orders = await getAdminOrders();
+                const currentFilter = getState().adminOrderFilter;
+                const orders = await getAdminOrders(currentFilter ? { status: currentFilter } : {});
                 setState({ adminOrders: orders.data });
                 showSuccess("Status do pedido atualizado com sucesso.");
             } catch (error) { showError(error); }

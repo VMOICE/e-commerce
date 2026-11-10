@@ -765,9 +765,112 @@ button {
     border-bottom: 0;
 }
 
-.order-row > div {
+.admin-orders-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+.admin-orders-header h2,
+.admin-orders-header p {
+    margin: 0;
+}
+
+.admin-orders-header p {
+    margin-top: 6px;
+}
+
+.admin-orders-header label,
+.admin-order-actions label {
     display: grid;
     gap: 6px;
+}
+
+.admin-orders-header label {
+    width: min(100%, 260px);
+}
+
+.admin-order-card {
+    display: grid;
+    gap: 18px;
+}
+
+.admin-order-summary,
+.admin-order-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px 20px;
+}
+
+.admin-order-customer {
+    display: grid;
+    gap: 5px;
+}
+
+.admin-order-meta time {
+    color: var(--color-text-secondary);
+    font-size: 14px;
+}
+
+.order-status {
+    display: inline-flex;
+    align-items: center;
+    min-height: 30px;
+    padding: 5px 11px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.order-status--pending {
+    background: #fff2cc;
+    color: #704d00;
+}
+
+.order-status--paid {
+    background: #e4efff;
+    color: #174b91;
+}
+
+.order-status--shipped {
+    background: #efe7ff;
+    color: #593394;
+}
+
+.order-status--delivered {
+    background: #e2f4e8;
+    color: #21643a;
+}
+
+.order-status--cancelled {
+    background: #fde7e7;
+    color: #8e2929;
+}
+
+.order-status--unknown {
+    background: #edf0f2;
+    color: #303a43;
+}
+
+.admin-order-actions {
+    display: flex;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.admin-order-actions label {
+    flex: 1 1 220px;
+}
+
+.admin-order-actions button {
+    flex: 0 0 auto;
 }
 
 .footer {
@@ -817,10 +920,22 @@ button {
         padding: 9px;
     }
 
-    .cart-row,
-    .order-row {
+    .cart-row {
         align-items: stretch;
         flex-direction: column;
+    }
+
+    .admin-order-summary {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .admin-order-meta {
+        justify-content: flex-start;
+    }
+
+    .admin-order-actions button {
+        width: 100%;
     }
 
     .detail-layout,

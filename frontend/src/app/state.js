@@ -18,6 +18,7 @@ const state = {
     selectedOrder: null,
     selectedOrderNotFoundId: null,
     adminUsers: undefined,
+    adminOrderFilter: "",
 
     feedback: null,
     loading: false,

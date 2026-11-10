@@ -25,10 +25,10 @@ X  Permite adicionar ao carrinho, com ou sem login.
 X  Produto sem estoque não pode ser adicionado, e a interface deixa isso claro.
 X  Produto inexistente ou inativo retorna 404.
 4.4 Carrinho sem login (visitante)
-☐  O visitante consegue adicionar itens ao carrinho sem estar autenticado.
-☐  O carrinho é identificado pela sessão, gerada pela API e guardado pelo frontend.
-☐  O carrinho do visitante é persistido no banco e sobrevive a recarregar a página e a fechar o navegador.
-☐  Permite alterar a quantidade e remover itens.
+X  O visitante consegue adicionar itens ao carrinho sem estar autenticado.
+X  O carrinho é identificado pela sessão, gerada pela API e guardado pelo frontend.
+X  O carrinho do visitante é persistido no banco e sobrevive a recarregar a página e a fechar o navegador.
+X  Permite alterar a quantidade e remover itens.
 ☐  Exibe subtotal por item e total do carrinho, sempre calculados pelo servidor.
 ☐  Adicionar um produto já presente no carrinho soma a quantidade, sem duplicar a linha.
 ☐  Ao tentar finalizar a compra, o visitante é direcionado ao login ou registro sem perder o carrinho.
@@ -64,7 +64,7 @@ X  Produto inexistente ou inativo retorna 404.
 ☐  O usuário só enxerga os próprios pedidos; acessar pedido alheio retorna 403 ou 404.
 ☐  O cliente consegue cancelar um pedido enquanto ele estiver aguardando pagamento, devolvendo o estoque.
 4.9 Área administrativa
-☐  Acessível somente a usuários com papel admin.
+X  Acessível somente a usuários com papel admin.
 ☐  Permite criar, editar e excluir produtos (nome, descrição, preço, estoque, categoria, imagem e ativo/inativo).
 ☐  Permite criar, editar e excluir categorias.
 ☐  Impede excluir categoria com produtos vinculados, ou adota outro comportamento claramente documentado.

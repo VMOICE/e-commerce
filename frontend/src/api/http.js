@@ -26,14 +26,4 @@ export async function initializeCsrfCookie() {
     await csrfHttp.get(CSRF_COOKIE_URL);
 }
 
-http.interceptors.request.use((config) => {
-    const guestToken = localStorage.getItem("guest_cart_token");
-
-    if (guestToken) {
-        config.headers["X-Guest-Cart-Token"] = guestToken;
-    }
-
-    return config;
-});
-
 export default http;

@@ -5,8 +5,8 @@ info:
   description: |
     API REST da loja. O frete é grátis e o pagamento é simulado, sem dados de cartão.
     Autenticação usa sessão Laravel/Sanctum por cookie; após registro ou login, o
-    carrinho de visitante é somado ao carrinho da conta, com quantidades limitadas
-    ao estoque e token de visitante invalidado.
+    carrinho de visitante é identificado pelo cookie de sessão e somado ao
+    carrinho da conta, com quantidades limitadas ao estoque.
 servers:
   - url: /api
     description: Mesmo host da API
@@ -22,8 +22,6 @@ paths:
     post:
       tags: [Autenticação]
       summary: Criar conta de cliente e mesclar carrinho visitante
-      parameters:
-        - $ref: '#/components/parameters/GuestCartToken'
       requestBody:
         required: true
         content:
@@ -43,8 +41,6 @@ paths:
     post:
       tags: [Autenticação]
       summary: Login e mesclagem do carrinho visitante
-      parameters:
-        - $ref: '#/components/parameters/GuestCartToken'
       requestBody:
         required: true
         content:
@@ -115,21 +111,15 @@ paths:
   /cart:
     get:
       tags: [Carrinho]
-      parameters:
-        - $ref: '#/components/parameters/GuestCartToken'
       responses:
-        '200': { description: Itens e totais calculados pelo servidor }
+        '200': { description: Itens e totais calculados pelo servidor; a sessão é identificada pelo cookie }
     delete:
       tags: [Carrinho]
-      parameters:
-        - $ref: '#/components/parameters/GuestCartToken'
       responses:
-        '200': { description: Carrinho esvaziado }
+        '200': { description: Carrinho esvaziado na sessão atual }
   /cart/items:
     post:
       tags: [Carrinho]
-      parameters:
-        - $ref: '#/components/parameters/GuestCartToken'
       requestBody:
         required: true
         content:
@@ -147,7 +137,6 @@ paths:
     patch:
       tags: [Carrinho]
       parameters:
-        - $ref: '#/components/parameters/GuestCartToken'
         - { name: productId, in: path, required: true, schema: { type: integer } }
       requestBody:
         required: true
@@ -164,7 +153,6 @@ paths:
     delete:
       tags: [Carrinho]
       parameters:
-        - $ref: '#/components/parameters/GuestCartToken'
         - { name: productId, in: path, required: true, schema: { type: integer } }
       responses:
         '200': { description: Item removido }
@@ -348,13 +336,6 @@ components:
       type: apiKey
       in: cookie
       name: mobilestore_session
-  parameters:
-    GuestCartToken:
-      name: X-Guest-Cart-Token
-      in: header
-      required: false
-      schema: { type: string }
-      description: Token retornado ao criar o carrinho anônimo.
   responses:
     Unauthorized:
       description: Sessão ausente ou expirada

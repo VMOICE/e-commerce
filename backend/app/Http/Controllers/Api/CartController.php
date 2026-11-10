@@ -7,8 +7,6 @@ use App\Models\Cart;
 use App\Services\CartService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Validation\ValidationException;
 
 class CartController extends Controller
 {
@@ -17,31 +15,22 @@ class CartController extends Controller
     ) {
     }
 
-    private function currentCart(Request $request): array
+    private function currentCart(Request $request): Cart
     {
         $user = $request->user('web');
+        $sessionId = $user === null ? $request->session()->getId() : null;
 
-        $guestToken = $user === null
-            ? $request->header('X-Guest-Cart-Token')
-            : null;
-
-        [$cart, $newToken] = $this->cartService->resolveCart(
-            $user,
-            $guestToken
-        );
-
-        return [$cart, $newToken];
+        return $this->cartService->resolveCart($user, $sessionId);
     }
 
     public function show(Request $request): JsonResponse
     {
-        [$cart, $newToken] = $this->currentCart($request);
+        $cart = $this->currentCart($request);
 
         $cart = $this->cartService->getCart($cart);
 
         return response()->json([
             'data' => $cart,
-            'guest_token' => $newToken,
         ]);
     }
 
@@ -52,7 +41,7 @@ class CartController extends Controller
             'quantity' => ['required', 'integer', 'min:1', 'max:1000'],
         ]);
 
-        [$cart, $newToken] = $this->currentCart($request);
+        $cart = $this->currentCart($request);
 
         $cart = $this->cartService->addItem(
             $cart,
@@ -63,7 +52,6 @@ class CartController extends Controller
         return response()->json([
             'message' => 'Produto adicionado ao carrinho.',
             'data' => $cart,
-            'guest_token' => $newToken,
         ], 201);
     }
 
@@ -75,7 +63,7 @@ class CartController extends Controller
             'quantity' => ['required', 'integer', 'min:1', 'max:1000'],
         ]);
 
-        [$cart, $newToken] = $this->currentCart($request);
+        $cart = $this->currentCart($request);
 
         $cart = $this->cartService->updateItem(
             $cart,
@@ -86,7 +74,6 @@ class CartController extends Controller
         return response()->json([
             'message' => 'Quantidade atualizada.',
             'data' => $cart,
-            'guest_token' => $newToken,
         ]);
     }
 
@@ -94,27 +81,25 @@ class CartController extends Controller
         Request $request,
         int $productId
     ): JsonResponse {
-        [$cart, $newToken] = $this->currentCart($request);
+        $cart = $this->currentCart($request);
 
         $cart = $this->cartService->removeItem($cart, $productId);
 
         return response()->json([
             'message' => 'Produto removido do carrinho.',
             'data' => $cart,
-            'guest_token' => $newToken,
         ]);
     }
 
     public function clear(Request $request): JsonResponse
     {
-        [$cart, $newToken] = $this->currentCart($request);
+        $cart = $this->currentCart($request);
 
         $cart = $this->cartService->clearCart($cart);
 
         return response()->json([
             'message' => 'Carrinho esvaziado.',
             'data' => $cart,
-            'guest_token' => $newToken,
         ]);
     }
 }

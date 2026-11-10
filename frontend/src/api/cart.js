@@ -1,13 +1,6 @@
 import http from "./http.js";
 
-// Processa a resposta e armazena o token do visitante, quando fornecido.
 function handleCartResponse(response) {
-    const { guest_token } = response.data;
-
-    if (guest_token) {
-        localStorage.setItem("guest_cart_token", guest_token);
-    }
-
     return response.data.data;
 }
 

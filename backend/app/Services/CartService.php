@@ -9,45 +9,33 @@ use App\Models\User;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
+use InvalidArgumentException;
 
 class CartService
 {
     /**
      * Localiza ou cria o carrinho do usuário ou visitante.
      *
-     * Para visitantes, retorna um token bruto somente quando
-     * um novo carrinho é criado. O banco armazena apenas seu hash.
+     * O carrinho de visitante é associado ao identificador da sessão;
+     * o banco armazena somente o hash desse identificador.
      */
-    public function resolveCart(?User $user, ?string $guestToken): array
+    public function resolveCart(?User $user, ?string $sessionId): Cart
     {
         if ($user !== null) {
-            $cart = Cart::firstOrCreate(
+            return Cart::firstOrCreate(
                 ['user_id' => $user->id],
-                ['guest_token_hash' => null]
+                ['guest_session_hash' => null]
             );
-
-            return [$cart, null];
         }
 
-        if ($guestToken !== null && $guestToken !== '') {
-            $cart = Cart::where(
-                'guest_token_hash',
-                hash('sha256', $guestToken)
-            )->first();
-
-            if ($cart !== null) {
-                return [$cart, null];
-            }
+        if ($sessionId === null || $sessionId === '') {
+            throw new InvalidArgumentException('Um carrinho de visitante exige uma sessão ativa.');
         }
 
-        $newToken = bin2hex(random_bytes(32));
-
-        $cart = Cart::create([
-            'user_id' => null,
-            'guest_token_hash' => hash('sha256', $newToken),
-        ]);
-
-        return [$cart, $newToken];
+        return Cart::firstOrCreate(
+            ['guest_session_hash' => hash('sha256', $sessionId)],
+            ['user_id' => null]
+        );
     }
 
     public function getCart(Cart $cart): Cart
@@ -181,13 +169,13 @@ class CartService
      */
     public function mergeGuestCart(
         User $user,
-        ?string $guestToken
+        ?string $sessionId
     ): array {
-        return DB::transaction(function () use ($user, $guestToken) {
+        return DB::transaction(function () use ($user, $sessionId) {
 
             $userCart = Cart::firstOrCreate(
                 ['user_id' => $user->id],
-                ['guest_token_hash' => null]
+                ['guest_session_hash' => null]
             );
 
             $userCart = Cart::whereKey($userCart->id)
@@ -196,7 +184,7 @@ class CartService
 
             $warnings = [];
 
-            if ($guestToken === null || $guestToken === '') {
+            if ($sessionId === null || $sessionId === '') {
                 return [
                     'cart' => $this->getCart($userCart),
                     'warnings' => $warnings,
@@ -204,8 +192,8 @@ class CartService
             }
 
             $guestCart = Cart::where(
-                'guest_token_hash',
-                hash('sha256', $guestToken)
+                'guest_session_hash',
+                hash('sha256', $sessionId)
             )
                 ->lockForUpdate()
                 ->first();

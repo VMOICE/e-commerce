@@ -370,20 +370,11 @@ class DatabaseSeeder extends Seeder
 
         $customerCart = Cart::firstOrCreate(
             ['user_id' => $customer->id],
-            ['guest_token_hash' => null]
+            ['guest_session_hash' => null]
         );
         CartItem::updateOrCreate(
             ['cart_id' => $customerCart->id, 'product_id' => $sampleProduct->id],
             ['quantity' => 1]
-        );
-
-        $guestCart = Cart::firstOrCreate(
-            ['guest_token_hash' => hash('sha256', 'guest-demo-token')],
-            ['user_id' => null]
-        );
-        CartItem::updateOrCreate(
-            ['cart_id' => $guestCart->id, 'product_id' => $sampleProduct->id],
-            ['quantity' => 2]
         );
 
         $address = Address::firstOrCreate(

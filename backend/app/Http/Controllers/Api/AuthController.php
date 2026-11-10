@@ -37,7 +37,7 @@ class AuthController extends Controller
 
         $cartMerge = $cartService->mergeGuestCart(
             $user,
-            $request->header('X-Guest-Cart-Token')
+            $request->session()->getId()
         );
 
         Auth::login($user);
@@ -73,7 +73,7 @@ class AuthController extends Controller
 
         $cartMerge = $cartService->mergeGuestCart(
             $user,
-            $request->header('X-Guest-Cart-Token')
+            $request->session()->getId()
         );
 
         Auth::login($user);

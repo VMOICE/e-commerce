@@ -32,12 +32,12 @@ docker compose exec api php artisan storage:link
 | Cliente | `cliente2@loja.test` | `Cliente123!` |
 | Cliente | `cliente3@loja.test` | `Cliente123!` |
 
-O seeder inclui três categorias, 30 produtos, produto sem estoque e produto inativo, carrinho de cliente, carrinho visitante e pedidos com os cinco status. O token fixo `guest-demo-token` é somente dado local de demonstração; em uso normal a API gera tokens aleatórios.
+O seeder inclui três categorias, 30 produtos, produto sem estoque e produto inativo, carrinho de cliente e pedidos com os cinco status.
 
 ## Fluxos e regras
 
 - O catálogo é público e oferece busca, categoria, ordenação e paginação.
-- Carrinhos anônimos são identificados por token aleatório; o banco guarda somente o hash. No login/registro, itens são somados, limitados ao estoque e o carrinho visitante é descartado.
+- Carrinhos anônimos são associados à sessão Laravel do visitante; o cookie de sessão identifica o carrinho e o banco guarda somente o hash do identificador da sessão. No login/registro, itens são somados, limitados ao estoque e o carrinho visitante é descartado.
 - Checkout exige um endereço salvo, congela endereço e preços no pedido e baixa estoque dentro de transação.
 - A criação do pedido usa status `pending`; o cliente confirma o pagamento simulado para `paid`. O administrador avança `paid → shipped → delivered`. O pedido `pending` pode ser cancelado, com devolução do estoque.
 - Valores são `decimal(10,2)` no banco; totais são calculados no servidor usando centavos inteiros.

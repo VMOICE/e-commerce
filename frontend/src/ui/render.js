@@ -59,6 +59,7 @@ const categoryImagePaths = {
     "carregadores-e-cabos": chargingIllustration,
     "audio-e-acessorios": audioIllustration,
 };
+const productDetailRequests = new Set();
 
 function escapeHTML(value) {
     return String(value ?? "").replace(/[&<>"']/g, (character) => ({
@@ -270,7 +271,32 @@ function renderCatalogPage(state, categoriesOnly = false) {
 function renderProductDetail(state, id) {
     const product = state.productDetail;
     if (!product || String(product.id) !== String(id)) {
-        loadProduct(id).then((data) => setState({ productDetail: data })).catch(showError);
+        if (String(state.productDetailNotFoundId) === String(id)) {
+            return `
+                <section class="panel empty-state">
+                    <h1>Produto não encontrado</h1>
+                    <p>Este produto não existe ou não está disponível no momento.</p>
+                    <a class="btn" href="#catalogo">Voltar ao catálogo</a>
+                </section>
+            `;
+        }
+
+        if (!productDetailRequests.has(String(id))) {
+            productDetailRequests.add(String(id));
+            loadProduct(id)
+                .then((data) => setState({
+                    productDetail: data,
+                    productDetailNotFoundId: null,
+                }))
+                .catch((error) => {
+                    if (error.response?.status === 404) {
+                        setState({ productDetailNotFoundId: String(id) });
+                        return;
+                    }
+                    showError(error);
+                })
+                .finally(() => productDetailRequests.delete(String(id)));
+        }
         return `<p class="text-secondary">Carregando produto...</p>`;
     }
     const image = productImage(product.image_path, product.category?.slug);
@@ -334,8 +360,8 @@ function renderAuth(register = false) {
     return `
         <section class="form-panel panel">
             <h1>${register ? "Criar conta" : "Entrar"}</h1>
-            <form id="auth-form" class="stack">
-                ${register ? `<label>Nome<input class="form-control" name="name" required maxlength="255"></label>` : ""}
+            <form id="auth-form" class="stack" novalidate>
+                ${register ? `<label>Nome<input class="form-control" name="name" autocomplete="name" required maxlength="255"></label>` : ""}
                 <label>E-mail<input class="form-control" name="email" type="email" required autocomplete="email"></label>
                 <label>Senha<input class="form-control" name="password" type="password" required minlength="8"
                     autocomplete="${register ? "new-password" : "current-password"}"></label>
@@ -361,46 +387,66 @@ function addressFields(disabled = false) {
     `;
 }
 
-function renderAddresses(state) {
-    if (!state.isAuthenticated) {
-        sessionStorage.setItem("after-login", "#conta");
-        return `<p>Entre para visualizar e cadastrar seus endereços. <a href="#login">Entrar</a></p>`;
+function renderAccount(state, section = "perfil") {
+    const sections = [
+        ["perfil", "Meu perfil"],
+        ["enderecos", "Endereços"],
+        ["pedidos", "Meus pedidos"],
+    ];
+    if (!sections.some(([key]) => key === section)) {
+        section = "perfil";
     }
-    if (!state.addressesLoaded) {
+
+    if (section === "enderecos" && !state.addressesLoaded) {
         getAddresses()
             .then((response) => setState({ addresses: response.data, addressesLoaded: true }))
             .catch(showError);
     }
     return `
         <h1 class="page-title">Minha conta</h1>
-        <section class="panel form-panel">
-            <form id="profile-form" class="stack">
-                <h2>Dados pessoais</h2>
-                <label>Nome<input class="form-control" name="name" value="${escapeHTML(state.user?.name)}" required></label>
-                <label>E-mail<input class="form-control" name="email" type="email" value="${escapeHTML(state.user?.email)}" required></label>
-                <button class="btn">Salvar perfil</button>
-            </form>
-            <h2>Endereços salvos</h2>
-            ${state.addresses?.length
-                ? `<div class="stack">${state.addresses.map((address) => `
-                    <form class="panel address-edit-form" data-address-id="${Number(address.id)}">
-                        <strong>${escapeHTML(address.label || "Endereço")}</strong>
-                        <label>Nome de quem recebe<input class="form-control" name="recipient_name" value="${escapeHTML(address.recipient_name)}" required></label>
-                        <label>CEP<input class="form-control" name="postal_code" value="${escapeHTML(address.postal_code)}" required></label>
-                        <label>Rua<input class="form-control" name="street" value="${escapeHTML(address.street)}" required></label>
-                        <label>Número<input class="form-control" name="number" value="${escapeHTML(address.number)}" required></label>
-                        <label>Complemento<input class="form-control" name="complement" value="${escapeHTML(address.complement)}"></label>
-                        <label>Bairro<input class="form-control" name="neighborhood" value="${escapeHTML(address.neighborhood)}" required></label>
-                        <label>Cidade<input class="form-control" name="city" value="${escapeHTML(address.city)}" required></label>
-                        <label>Estado<input class="form-control" name="state" value="${escapeHTML(address.state)}" required></label>
-                        <button class="btn btn-secondary">Atualizar endereço</button>
-                        <button class="btn" type="button" data-delete-address="${Number(address.id)}">Remover</button>
-                    </form>
-                `).join("")}</div>`
-                : `<p>Nenhum endereço cadastrado.</p>`}
-            <h2>Adicionar endereço</h2>
-            <form id="address-form" class="stack">${addressFields()}<button class="btn">Salvar endereço</button></form>
-        </section>
+        <nav class="account-tabs" aria-label="Seções da conta">
+            ${sections.map(([key, label]) => `
+                <a class="btn ${section === key ? "" : "btn-secondary"}"
+                    href="#conta/${key}" ${section === key ? 'aria-current="page"' : ""}>${label}</a>
+            `).join("")}
+        </nav>
+        ${section === "perfil" ? `
+            <section class="panel form-panel">
+                <form id="profile-form" class="stack" novalidate>
+                    <h2>Dados pessoais</h2>
+                    <label>Nome<input class="form-control" name="name" value="${escapeHTML(state.user?.name)}" required></label>
+                    <label>E-mail<input class="form-control" name="email" type="email" value="${escapeHTML(state.user?.email)}" required></label>
+                    <button class="btn">Salvar perfil</button>
+                </form>
+            </section>
+        ` : ""}
+        ${section === "enderecos" ? `
+            <section class="account-section">
+                <h2>Endereços salvos</h2>
+                ${state.addressesLoaded
+                    ? state.addresses?.length
+                        ? `<div class="stack">${state.addresses.map((address) => `
+                            <form class="panel address-edit-form" data-address-id="${Number(address.id)}">
+                                <strong>${escapeHTML(address.label || "Endereço")}</strong>
+                                <label>Nome de quem recebe<input class="form-control" name="recipient_name" value="${escapeHTML(address.recipient_name)}" required></label>
+                                <label>CEP<input class="form-control" name="postal_code" value="${escapeHTML(address.postal_code)}" required></label>
+                                <label>Rua<input class="form-control" name="street" value="${escapeHTML(address.street)}" required></label>
+                                <label>Número<input class="form-control" name="number" value="${escapeHTML(address.number)}" required></label>
+                                <label>Complemento<input class="form-control" name="complement" value="${escapeHTML(address.complement)}"></label>
+                                <label>Bairro<input class="form-control" name="neighborhood" value="${escapeHTML(address.neighborhood)}" required></label>
+                                <label>Cidade<input class="form-control" name="city" value="${escapeHTML(address.city)}" required></label>
+                                <label>Estado<input class="form-control" name="state" value="${escapeHTML(address.state)}" required></label>
+                                <button class="btn btn-secondary">Atualizar endereço</button>
+                                <button class="btn" type="button" data-delete-address="${Number(address.id)}">Remover</button>
+                            </form>
+                        `).join("")}</div>`
+                        : `<p>Nenhum endereço cadastrado.</p>`
+                    : `<p class="text-secondary">Carregando endereços...</p>`}
+                <h2>Adicionar endereço</h2>
+                <form id="address-form" class="panel stack address-edit-form">${addressFields()}<button class="btn">Salvar endereço</button></form>
+            </section>
+        ` : ""}
+        ${section === "pedidos" ? renderOrderList(state, false) : ""}
     `;
 }
 
@@ -453,15 +499,15 @@ function renderCheckout(state) {
     `;
 }
 
-function renderOrderList(state) {
+function renderOrderList(state, includeTitle = true) {
     if (!state.isAuthenticated) {
         sessionStorage.setItem("after-login", "#pedidos");
         return `<p>Entre para visualizar seus pedidos. <a href="#login">Entrar</a></p>`;
     }
     const orders = state.orders ?? [];
-    if (!orders.length) return `<h1 class="page-title">Meus pedidos</h1><p>Você ainda não fez pedidos.</p>`;
+    if (!orders.length) return `${includeTitle ? `<h1 class="page-title">Meus pedidos</h1>` : ""}<p>Você ainda não fez pedidos.</p>`;
     return `
-        <h1 class="page-title">Meus pedidos</h1>
+        ${includeTitle ? `<h1 class="page-title">Meus pedidos</h1>` : ""}
         <div class="stack">${orders.map((order) => `
             <article class="panel order-row">
                 <div><strong>Pedido #${Number(order.id)}</strong><span>${new Date(order.created_at).toLocaleString("pt-BR")}</span></div>
@@ -490,18 +536,51 @@ function renderOrderDetail(state, id) {
     `;
 }
 
-function renderAdmin(state) {
+function renderAdmin(state, section = "inicio") {
     if (state.user?.role !== "admin") return `<h1>Acesso restrito</h1><p>Somente administradores podem acessar esta área.</p>`;
-    if (!Array.isArray(state.adminOrders)) {
+    const sections = [
+        ["inicio", "Visão geral"],
+        ["cadastrar-produto", "Cadastrar produto"],
+        ["produtos", "Gerenciar produtos"],
+        ["categorias", "Categorias"],
+        ["pedidos", "Pedidos"],
+    ];
+    if (!sections.some(([key]) => key === section)) {
+        section = "inicio";
+    }
+
+    if (section === "pedidos" && !Array.isArray(state.adminOrders)) {
         getAdminOrders().then((response) => setState({ adminOrders: response.data })).catch(showError);
     }
-    if (!Array.isArray(state.adminProducts)) {
+    if (section === "produtos" && !Array.isArray(state.adminProducts)) {
         getAdminProducts().then((response) => setState({ adminProducts: response.data })).catch(showError);
     }
+
     return `
         <h1 class="page-title">Painel administrativo</h1>
-        <section class="admin-grid">
-            <form id="admin-product-form" class="panel stack">
+        <nav class="admin-nav" aria-label="Funções administrativas">
+            ${sections.map(([key, label]) => `
+                <a class="btn ${section === key ? "" : "btn-secondary"}"
+                    href="#admin/${key}" ${section === key ? 'aria-current="page"' : ""}>${label}</a>
+            `).join("")}
+        </nav>
+        ${section === "inicio" ? `
+            <section class="admin-options" aria-label="Opções do painel">
+                ${sections.slice(1).map(([key, label]) => `
+                    <a class="panel admin-option" href="#admin/${key}">
+                        <h2>${label}</h2>
+                        <span class="text-secondary">${({
+                            "cadastrar-produto": "Adicione um produto ao catálogo.",
+                            produtos: "Edite informações, estoque e status dos produtos.",
+                            categorias: "Cadastre, edite ou remova categorias.",
+                            pedidos: "Consulte pedidos e atualize seus status.",
+                        })[key]}</span>
+                    </a>
+                `).join("")}
+            </section>
+        ` : ""}
+        ${section === "cadastrar-produto" ? `
+            <form id="admin-product-form" class="panel stack admin-form">
                 <h2>Cadastrar produto</h2>
                 <label>Nome<input class="form-control" name="name" required></label>
                 <label>Slug<input class="form-control" name="slug" required></label>
@@ -514,67 +593,79 @@ function renderAdmin(state) {
                 <label>Caminho ou URL da imagem<input class="form-control" name="image_path" maxlength="255"></label>
                 <button class="btn">Salvar produto</button>
             </form>
-            <form id="admin-category-form" class="panel stack">
-                <h2>Cadastrar categoria</h2>
-                <label>Nome<input class="form-control" name="name" required></label>
-                <label>Slug<input class="form-control" name="slug" required></label>
-                <label>Descrição<textarea class="form-control" name="description"></textarea></label>
-                <button class="btn">Salvar categoria</button>
-            </form>
-        </section>
-        <h2>Produtos</h2>
-        <div class="stack">${(state.adminProducts ?? []).map((product) => `
-            <form class="panel admin-edit-form" data-admin-product="${Number(product.id)}">
-                <strong>Produto #${Number(product.id)}</strong>
-                <label>Nome<input class="form-control" name="name" value="${escapeHTML(product.name)}" required></label>
-                <label>Slug<input class="form-control" name="slug" value="${escapeHTML(product.slug)}" required></label>
-                <label>Categoria<select class="form-control" name="category_id">
-                    ${(state.categories ?? []).map((category) => `<option value="${Number(category.id)}" ${Number(category.id) === Number(product.category_id) ? "selected" : ""}>${escapeHTML(category.name)}</option>`).join("")}
-                </select></label>
-                <label>Descrição<textarea class="form-control" name="description">${escapeHTML(product.description)}</textarea></label>
-                <label>Preço<input class="form-control" name="price" type="number" step="0.01" min="0" value="${escapeHTML(product.price)}" required></label>
-                <label>Estoque<input class="form-control" name="stock" type="number" min="0" value="${Number(product.stock)}" required></label>
-                <label>Caminho ou URL da imagem<input class="form-control" name="image_path" maxlength="255" value="${escapeHTML(product.image_path)}"></label>
-                <label>Status<select class="form-control" name="is_active">
-                    <option value="1" ${product.is_active ? "selected" : ""}>Ativo</option>
-                    <option value="0" ${!product.is_active ? "selected" : ""}>Inativo</option>
-                </select></label>
-                <button class="btn btn-secondary">Salvar alterações</button>
-                ${product.is_active ? `<button class="btn" type="button" data-deactivate-product="${Number(product.id)}">Desativar</button>` : ""}
-            </form>
-        `).join("")}</div>
-        <h2>Categorias</h2>
-        <div class="stack">${(state.categories ?? []).map((category) => `
-            <form class="panel category-edit-form" data-admin-category="${Number(category.id)}">
-                <label>Nome<input class="form-control" name="name" value="${escapeHTML(category.name)}" required></label>
-                <label>Slug<input class="form-control" name="slug" value="${escapeHTML(category.slug)}" required></label>
-                <label>Descrição<textarea class="form-control" name="description">${escapeHTML(category.description)}</textarea></label>
-                <button class="btn btn-secondary">Salvar categoria</button>
-                <button class="btn" type="button" data-delete-category="${Number(category.id)}">Excluir categoria</button>
-            </form>
-        `).join("")}</div>
-        <h2>Pedidos da loja</h2>
-        <label>Filtrar pedidos<select class="form-control" id="admin-status-filter">
-            <option value="">Todos os status</option>
-            ${["pending", "paid", "shipped", "delivered", "cancelled"].map((status) => `<option value="${status}">${statusLabel(status)}</option>`).join("")}
-        </select></label>
-        <div class="stack">${(state.adminOrders ?? []).map((order) => `
-            <form class="panel order-row" data-admin-order="${Number(order.id)}">
-                <strong>Pedido #${Number(order.id)} — ${escapeHTML(order.user?.name)}</strong>
-                <span>${statusLabel(order.status)} · ${formatPrice(order.total)}</span>
-                <select class="form-control" name="status" required>
-                    <option value="" selected>Escolha uma transição</option>
-                    ${( {
-                        pending: ["paid", "cancelled"],
-                        paid: ["shipped"],
-                        shipped: ["delivered"],
-                        delivered: [],
-                        cancelled: [],
-                    }[order.status] ?? []).map((status) => `<option value="${status}">${statusLabel(status)}</option>`).join("")}
-                </select>
-                <button class="btn btn-secondary" ${["delivered", "cancelled"].includes(order.status) ? "disabled" : ""}>Atualizar status</button>
-            </form>
-        `).join("")}</div>
+        ` : ""}
+        ${section === "produtos" ? `
+            <h2>Gerenciar produtos</h2>
+            ${Array.isArray(state.adminProducts) ? `
+                <div class="stack">${state.adminProducts.map((product) => `
+                    <form class="panel admin-edit-form" data-admin-product="${Number(product.id)}">
+                        <strong>Produto #${Number(product.id)}</strong>
+                        <label>Nome<input class="form-control" name="name" value="${escapeHTML(product.name)}" required></label>
+                        <label>Slug<input class="form-control" name="slug" value="${escapeHTML(product.slug)}" required></label>
+                        <label>Categoria<select class="form-control" name="category_id">
+                            ${(state.categories ?? []).map((category) => `<option value="${Number(category.id)}" ${Number(category.id) === Number(product.category_id) ? "selected" : ""}>${escapeHTML(category.name)}</option>`).join("")}
+                        </select></label>
+                        <label>Descrição<textarea class="form-control" name="description">${escapeHTML(product.description)}</textarea></label>
+                        <label>Preço<input class="form-control" name="price" type="number" step="0.01" min="0" value="${escapeHTML(product.price)}" required></label>
+                        <label>Estoque<input class="form-control" name="stock" type="number" min="0" value="${Number(product.stock)}" required></label>
+                        <label>Caminho ou URL da imagem<input class="form-control" name="image_path" maxlength="255" value="${escapeHTML(product.image_path)}"></label>
+                        <label>Status<select class="form-control" name="is_active">
+                            <option value="1" ${product.is_active ? "selected" : ""}>Ativo</option>
+                            <option value="0" ${!product.is_active ? "selected" : ""}>Inativo</option>
+                        </select></label>
+                        <button class="btn btn-secondary">Salvar alterações</button>
+                        ${product.is_active ? `<button class="btn" type="button" data-deactivate-product="${Number(product.id)}">Desativar</button>` : ""}
+                    </form>
+                `).join("")}</div>
+            ` : `<p class="text-secondary">Carregando produtos...</p>`}
+        ` : ""}
+        ${section === "categorias" ? `
+            <section class="admin-grid">
+                <form id="admin-category-form" class="panel stack admin-form">
+                    <h2>Cadastrar categoria</h2>
+                    <label>Nome<input class="form-control" name="name" required></label>
+                    <label>Slug<input class="form-control" name="slug" required></label>
+                    <label>Descrição<textarea class="form-control" name="description"></textarea></label>
+                    <button class="btn">Salvar categoria</button>
+                </form>
+            </section>
+            <h2>Categorias cadastradas</h2>
+            <div class="stack">${(state.categories ?? []).map((category) => `
+                <form class="panel category-edit-form" data-admin-category="${Number(category.id)}">
+                    <label>Nome<input class="form-control" name="name" value="${escapeHTML(category.name)}" required></label>
+                    <label>Slug<input class="form-control" name="slug" value="${escapeHTML(category.slug)}" required></label>
+                    <label>Descrição<textarea class="form-control" name="description">${escapeHTML(category.description)}</textarea></label>
+                    <button class="btn btn-secondary">Salvar categoria</button>
+                    <button class="btn" type="button" data-delete-category="${Number(category.id)}">Excluir categoria</button>
+                </form>
+            `).join("")}</div>
+        ` : ""}
+        ${section === "pedidos" ? `
+            <h2>Pedidos da loja</h2>
+            <label>Filtrar pedidos<select class="form-control" id="admin-status-filter">
+                <option value="">Todos os status</option>
+                ${["pending", "paid", "shipped", "delivered", "cancelled"].map((status) => `<option value="${status}">${statusLabel(status)}</option>`).join("")}
+            </select></label>
+            ${Array.isArray(state.adminOrders) ? `
+                <div class="stack">${state.adminOrders.map((order) => `
+                    <form class="panel order-row" data-admin-order="${Number(order.id)}">
+                        <strong>Pedido #${Number(order.id)} — ${escapeHTML(order.user?.name)}</strong>
+                        <span>${statusLabel(order.status)} · ${formatPrice(order.total)}</span>
+                        <select class="form-control" name="status" required>
+                            <option value="" selected>Escolha uma transição</option>
+                            ${( {
+                                pending: ["paid", "cancelled"],
+                                paid: ["shipped"],
+                                shipped: ["delivered"],
+                                delivered: [],
+                                cancelled: [],
+                            }[order.status] ?? []).map((status) => `<option value="${status}">${statusLabel(status)}</option>`).join("")}
+                        </select>
+                        <button class="btn btn-secondary" ${["delivered", "cancelled"].includes(order.status) ? "disabled" : ""}>Atualizar status</button>
+                    </form>
+                `).join("")}</div>
+            ` : `<p class="text-secondary">Carregando pedidos...</p>`}
+        ` : ""}
     `;
 }
 
@@ -594,6 +685,43 @@ function showError(error) {
 
 function formValues(form) {
     return Object.fromEntries(new FormData(form).entries());
+}
+
+function validateRequiredFields(form) {
+    const requiredFields = [...form.querySelectorAll("[required]:not(:disabled)")];
+    const incompleteFields = requiredFields.filter((field) => !field.value.trim());
+
+    form.querySelectorAll("[aria-invalid='true']").forEach((field) => {
+        field.removeAttribute("aria-invalid");
+    });
+
+    if (incompleteFields.length) {
+        incompleteFields.forEach((field) => field.setAttribute("aria-invalid", "true"));
+        const labels = incompleteFields.map((field) =>
+            field.closest("label")?.textContent.trim() ?? field.name
+        );
+        showError(new Error(`Preencha os campos obrigatórios: ${labels.join(", ")}.`));
+        incompleteFields[0].focus();
+        return false;
+    }
+
+    const nameField = form.querySelector('input[name="name"]');
+    if (nameField && !/^[\p{L}\s]+$/u.test(nameField.value.trim())) {
+        nameField.setAttribute("aria-invalid", "true");
+        showError(new Error("O campo Nome deve conter apenas letras e espaços."));
+        nameField.focus();
+        return false;
+    }
+
+    const invalidField = requiredFields.find((field) => !field.checkValidity());
+    if (invalidField) {
+        invalidField.setAttribute("aria-invalid", "true");
+        showError(new Error(`Verifique o campo ${invalidField.closest("label")?.textContent.trim() ?? invalidField.name}.`));
+        invalidField.focus();
+        return false;
+    }
+
+    return true;
 }
 
 function bindEvents(app, page, id) {
@@ -674,7 +802,9 @@ function bindEvents(app, page, id) {
 
     app.querySelector("#auth-form")?.addEventListener("submit", async (event) => {
         event.preventDefault();
-        const values = formValues(event.currentTarget);
+        const form = event.currentTarget;
+        if (!validateRequiredFields(form)) return;
+        const values = formValues(form);
         try {
             if (page === "registro") await registerUser(values);
             else await loginUser(values);
@@ -705,8 +835,10 @@ function bindEvents(app, page, id) {
     });
     app.querySelector("#profile-form")?.addEventListener("submit", async (event) => {
         event.preventDefault();
+        const form = event.currentTarget;
+        if (!validateRequiredFields(form)) return;
         try {
-            const response = await updateMe(formValues(event.currentTarget));
+            const response = await updateMe(formValues(form));
             setState({ user: response.user });
         } catch (error) { showError(error); }
     });
@@ -870,8 +1002,8 @@ function renderPage(state, page, id) {
         case "checkout": return renderCheckout(state);
         case "pedidos": return renderOrderList(state);
         case "pedido": return renderOrderDetail(state, id);
-        case "conta": return renderAddresses(state);
-        case "admin": return renderAdmin(state);
+        case "conta": return renderAccount(state, id || "perfil");
+        case "admin": return renderAdmin(state, id || "inicio");
         default: return `<h1>Página não encontrada</h1><a href="#catalogo">Voltar ao catálogo</a>`;
     }
 }

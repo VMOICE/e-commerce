@@ -7,6 +7,7 @@ const state = {
     productFilters: {},
     productPagination: null,
     productDetail: null,
+    productDetailNotFoundId: null,
 
     categories: [],
     addresses: [],

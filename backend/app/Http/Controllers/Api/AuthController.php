@@ -19,7 +19,7 @@ class AuthController extends Controller
         CartService $cartService
     ): JsonResponse {
         $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
+            'name' => ['required', 'string', 'max:255', 'regex:/^\p{L}+(?:\s+\p{L}+)*$/u'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
             'password' => [
                 'required',
@@ -97,7 +97,7 @@ class AuthController extends Controller
     public function updateProfile(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'name' => ['sometimes', 'required', 'string', 'max:255'],
+            'name' => ['sometimes', 'required', 'string', 'max:255', 'regex:/^\p{L}+(?:\s+\p{L}+)*$/u'],
             'email' => [
                 'sometimes',
                 'required',

@@ -1,0 +1,81 @@
+4. Critérios de aceite por funcionalidade
+
+4.1 Registro, login e papéis
+X  O usuário consegue se registrar com nome, e-mail e senha.
+X  O sistema valida campos obrigatórios, e-mail único e confirmação de senha, informando erros de forma legível.
+X  O usuário consegue fazer login com credenciais válidas e recebe um cookie de acesso.
+X  Existe ação de logout que invalida a sessão.
+X  A sessão permanece ativa conforme a estratégia de autenticação escolhida.
+X  Cada usuário possui um papel (cliente ou admin) e a navegação do frontend reflete esse papel.
+X  Um cliente que tenta acessar rotas administrativas recebe 403.
+4.2 Catálogo
+X  Visitantes não autenticados conseguem ver a listagem de produtos.
+X  Cada produto exibe imagem, nome, preço e indicação de indisponibilidade quando o estoque é zero.
+X  Permite pesquisar produtos por nome.
+X  Permite filtrar por categoria.
+X  Permite ordenar por preço (crescente e decrescente) e por mais recentes.
+X  A listagem é paginada e a paginação funciona no frontend.
+X  Produtos inativos não aparecem no catálogo.
+----  Uma busca sem resultados exibe mensagem apropriada, e não uma tela vazia sem explicação.
+4.3 Página do produto
+X  É acessível ao clicar no produto e possui URL própria.
+X  Exibe nome, descrição, preço, categoria, imagem e disponibilidade.
+X  Permite escolher a quantidade, limitada ao estoque disponível.
+X  Permite adicionar ao carrinho, com ou sem login.
+X  Produto sem estoque não pode ser adicionado, e a interface deixa isso claro.
+X  Produto inexistente ou inativo retorna 404.
+4.4 Carrinho sem login (visitante)
+☐  O visitante consegue adicionar itens ao carrinho sem estar autenticado.
+☐  O carrinho é identificado pela sessão, gerada pela API e guardado pelo frontend.
+☐  O carrinho do visitante é persistido no banco e sobrevive a recarregar a página e a fechar o navegador.
+☐  Permite alterar a quantidade e remover itens.
+☐  Exibe subtotal por item e total do carrinho, sempre calculados pelo servidor.
+☐  Adicionar um produto já presente no carrinho soma a quantidade, sem duplicar a linha.
+☐  Ao tentar finalizar a compra, o visitante é direcionado ao login ou registro sem perder o carrinho.
+4.5 Carrinho após o login
+☐  Ao autenticar, o carrinho de visitante é fundido com o carrinho da conta.
+☐  A regra de fusão está implementada e o aluno sabe explicá-la (ver seção 5).
+☐  Após a fusão, a sessão inicial de visitante deixa de valer e não gera um segundo carrinho.
+☐  Um usuário autenticado tem no máximo um carrinho ativo.
+☐  O carrinho da conta persiste entre sessões e entre dispositivos.
+☐  Itens indisponíveis (produto inativo ou sem estoque) são sinalizados no carrinho.
+☐  O total é sempre recalculado no servidor; valores enviados pelo cliente são ignorados.
+4.6 Checkout
+☐  Exige usuário autenticado.
+☐  Permite cadastrar ou selecionar um endereço de entrega.
+☐  Exibe o resumo do pedido: itens, quantidades, preços unitários, frete e total.
+☐  Carrinho vazio não permite finalizar, com erro claro (422).
+☐  Item sem estoque suficiente impede a finalização e informa qual produto falhou.
+☐  Ao confirmar, é criado um pedido com status “aguardando pagamento”.
+☐  O estoque dos produtos é decrementado na criação do pedido.
+☐  O carrinho é esvaziado após a criação do pedido.
+☐  Os preços do pedido ficam congelados: alterações posteriores no catálogo não alteram pedidos já criados.
+4.7 Pagamento simulado
+☐  A tela do pedido pendente exibe uma ação explícita de pagamento (por exemplo, “Confirmar pagamento”).
+☐  Ao acionar, o pedido passa para “pago” e registra a data e hora do pagamento.
+☐  Nenhum dado de cartão é solicitado, trafegado ou armazenado.
+☐  Somente o dono do pedido pode pagá-lo; outro usuário recebe 403.
+☐  Pagar um pedido que não está aguardando pagamento retorna erro coerente (409).
+☐  A interface deixa claro que o pagamento é simulado para fins acadêmicos.
+4.8 Meus pedidos
+☐  Lista os pedidos do usuário com identificador, data, total e status.
+☐  Permite abrir o detalhe do pedido.
+☐  O detalhe exibe itens, quantidades, preços praticados, endereço de entrega e status atual.
+☐  O usuário só enxerga os próprios pedidos; acessar pedido alheio retorna 403 ou 404.
+☐  O cliente consegue cancelar um pedido enquanto ele estiver aguardando pagamento, devolvendo o estoque.
+4.9 Área administrativa
+☐  Acessível somente a usuários com papel admin.
+☐  Permite criar, editar e excluir produtos (nome, descrição, preço, estoque, categoria, imagem e ativo/inativo).
+☐  Permite criar, editar e excluir categorias.
+☐  Impede excluir categoria com produtos vinculados, ou adota outro comportamento claramente documentado.
+☐  Permite atualizar o estoque de um produto.
+☐  Lista todos os pedidos da loja, com filtro por status.
+☐  Permite avançar o status do pedido (pago → enviado → entregue), respeitando as transições válidas.
+☐  Excluir ou desativar um produto não quebra pedidos antigos (ver seção 5).
+4.10 Perfil e navegação
+☐  O usuário visualiza e edita seus dados e gerencia seus endereços.
+☐  A navegação principal dá acesso a Catálogo, Carrinho, Meus pedidos e Perfil; o admin também acessa o Painel.
+☐  O indicador do carrinho reflete a quantidade de itens, com e sem login.
+☐  O item ativo da navegação é visualmente identificado.
+☐  Rotas inexistentes possuem tratamento adequado, como redirecionamento ou página 404.
+☐  Rotas protegidas acessadas sem autenticação redirecionam para o login.

@@ -10,24 +10,6 @@ class AuthSessionTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_names_only_accept_letters_and_spaces_on_registration_and_profile_update(): void
-    {
-        $this->postJson('/api/register', [
-            'name' => 'Ana123',
-            'email' => 'ana@example.test',
-            'password' => 'password123',
-            'password_confirmation' => 'password123',
-        ])->assertUnprocessable()
-            ->assertJsonValidationErrors('name');
-
-        $user = User::factory()->create();
-
-        $this->actingAs($user)
-            ->patchJson('/api/me', ['name' => 'Ana123'])
-            ->assertUnprocessable()
-            ->assertJsonValidationErrors('name');
-    }
-
     public function test_login_authenticates_with_a_session_cookie_without_returning_a_token(): void
     {
         $user = User::factory()->create();

@@ -22,7 +22,7 @@ class CartController extends Controller
      */
     private function currentCart(Request $request): array
     {
-        $user = $request->user('sanctum');
+        $user = $request->user('web');
 
         $guestToken = $user === null
             ? $request->header('X-Guest-Cart-Token')

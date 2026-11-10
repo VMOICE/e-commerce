@@ -24,7 +24,7 @@ Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 
 // Rotas que exigem autenticação
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware('auth:web')->group(function () {
     Route::get('/me', [AuthController::class, 'me']);
     Route::post('/logout', [AuthController::class, 'logout']);
 
@@ -47,7 +47,7 @@ Route::delete('/cart/items/{productId}', [CartController::class, 'destroy'])
 Route::delete('/cart', [CartController::class, 'clear']);
 
 // Rotas administrativas
-Route::middleware(['auth:sanctum', 'admin'])
+Route::middleware(['auth:web', 'admin'])
     ->prefix('admin')
     ->group(function () {
 

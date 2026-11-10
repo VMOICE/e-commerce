@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Services\CartService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules\Password;
 
@@ -41,12 +42,12 @@ class AuthController extends Controller
             $request->header('X-Guest-Cart-Token')
         );
 
-        $token = $user->createToken('postman')->plainTextToken;
+        Auth::login($user);
+        $request->session()->regenerate();
 
         return response()->json([
             'message' => 'Conta criada com sucesso.',
             'user' => $user,
-            'token' => $token,
             'cart' => $cartMerge['cart'],
             'warnings' => $cartMerge['warnings'],
         ], 201);
@@ -80,12 +81,12 @@ class AuthController extends Controller
             $request->header('X-Guest-Cart-Token')
         );
 
-        $token = $user->createToken('postman')->plainTextToken;
+        Auth::login($user);
+        $request->session()->regenerate();
 
         return response()->json([
             'message' => 'Login realizado com sucesso.',
             'user' => $user,
-            'token' => $token,
             'cart' => $cartMerge['cart'],
             'warnings' => $cartMerge['warnings'],
         ]);
@@ -102,11 +103,13 @@ class AuthController extends Controller
     }
 
     /**
-     * Revoga o token utilizado na requisição.
+     * Encerra a sessão autenticada.
      */
     public function logout(Request $request): JsonResponse
     {
-        $request->user()->currentAccessToken()->delete();
+        Auth::guard('web')->logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
 
         return response()->json([
             'message' => 'Logout realizado com sucesso.',

@@ -19,31 +19,28 @@ export async function initializeApp() {
             loadCategories(),
         ]);
 
-        // Verifica se existe um token de autenticação.
-        const token = localStorage.getItem("auth_token");
+        // Remove tokens usados pelo fluxo antigo de autenticação.
+        localStorage.removeItem("auth_token");
 
-        if (token) {
-            try {
-                // Valida a sessão e carrega o usuário.
-                await loadAuthenticatedUser();
-            } catch (error) {
-                // Trata especificamente tokens expirados ou inválidos.
-                if (error.response?.status !== 401) {
-                    throw error;
-                }
+        let isAuthenticated = false;
 
-                localStorage.removeItem("auth_token");
-
-                setState({
-                    user: null,
-                    isAuthenticated: false,
-                    orders: [],
-                });
+        try {
+            await loadAuthenticatedUser();
+            isAuthenticated = true;
+        } catch (error) {
+            if (error.response?.status !== 401) {
+                throw error;
             }
+
+            setState({
+                user: null,
+                isAuthenticated: false,
+                orders: [],
+            });
         }
 
         // Carrega os dados conforme o estado da autenticação.
-        if (localStorage.getItem("auth_token")) {
+        if (isAuthenticated) {
             await Promise.all([
                 loadCart(),
                 loadOrders(),

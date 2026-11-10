@@ -1,21 +1,24 @@
 import axios from "axios";
 
+const API_BASE_URL = "http://localhost:8081/api";
+const CSRF_COOKIE_URL = API_BASE_URL.replace(/\/api\/?$/, "/sanctum/csrf-cookie");
+
 const http = axios.create({
-    baseURL: "http://localhost:8081/api",
+    baseURL: API_BASE_URL,
+    withCredentials: true,
+    withXSRFToken: true,
     headers: {
         "Content-Type": "application/json",
         Accept: "application/json",
     },
 });
 
-// Adiciona automaticamente os dados de autenticação.
-http.interceptors.request.use((config) => {
-    const token = localStorage.getItem("auth_token");
-    const guestToken = localStorage.getItem("guest_cart_token");
+export async function initializeCsrfCookie() {
+    await http.get(CSRF_COOKIE_URL);
+}
 
-    if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
-    }
+http.interceptors.request.use((config) => {
+    const guestToken = localStorage.getItem("guest_cart_token");
 
     if (guestToken) {
         config.headers["X-Guest-Cart-Token"] = guestToken;

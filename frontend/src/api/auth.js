@@ -1,12 +1,10 @@
-import http from "./http.js";
+import http, { initializeCsrfCookie } from "./http.js";
 
 // Cadastra um novo usuário.
 export async function register(userData) {
+    await initializeCsrfCookie();
     const response = await http.post("/register", userData);
 
-    const { token } = response.data;
-
-    localStorage.setItem("auth_token", token);
     localStorage.removeItem("guest_cart_token");
 
     return response.data;
@@ -14,11 +12,9 @@ export async function register(userData) {
 
 // Realiza o login.
 export async function login(credentials) {
+    await initializeCsrfCookie();
     const response = await http.post("/login", credentials);
 
-    const { token } = response.data;
-
-    localStorage.setItem("auth_token", token);
     localStorage.removeItem("guest_cart_token");
 
     return response.data;
@@ -33,9 +29,9 @@ export async function getMe() {
 
 // Realiza o logout.
 export async function logout() {
+    await initializeCsrfCookie();
     const response = await http.post("/logout");
 
-    localStorage.removeItem("auth_token");
     localStorage.removeItem("guest_cart_token");
 
     return response.data;

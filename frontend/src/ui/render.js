@@ -78,6 +78,15 @@ function formatPrice(value) {
     });
 }
 
+function formatDateTime(value) {
+    if (!value) {
+        return "";
+    }
+
+    const date = new Date(value);
+    return Number.isNaN(date.getTime()) ? "" : date.toLocaleString("pt-BR");
+}
+
 function productImage(imagePath, categorySlug) {
     if (/^https?:\/\//i.test(imagePath)) {
         return imagePath;
@@ -510,7 +519,11 @@ function renderOrderList(state, includeTitle = true) {
         ${includeTitle ? `<h1 class="page-title">Meus pedidos</h1>` : ""}
         <div class="stack">${orders.map((order) => `
             <article class="panel order-row">
-                <div><strong>Pedido #${Number(order.id)}</strong><span>${new Date(order.created_at).toLocaleString("pt-BR")}</span></div>
+                <div>
+                    <strong>Pedido #${Number(order.id)}</strong>
+                    <span>${formatDateTime(order.created_at)}</span>
+                    ${order.paid_at ? `<span>Pagamento: ${formatDateTime(order.paid_at)}</span>` : ""}
+                </div>
                 <span>${statusLabel(order.status)}</span><strong>${formatPrice(order.total)}</strong>
                 <button class="btn btn-secondary" type="button" data-order-detail="${Number(order.id)}">Detalhes</button>
                 ${order.status === "pending" ? `<button class="btn" data-pay-order="${Number(order.id)}">Confirmar pagamento simulado</button><button class="btn btn-secondary" data-cancel-order="${Number(order.id)}">Cancelar</button>` : ""}
@@ -529,6 +542,7 @@ function renderOrderDetail(state, id) {
         <a href="#pedidos">← Voltar aos pedidos</a>
         <h1 class="page-title">Pedido #${Number(order.id)}</h1>
         <p>Status: ${statusLabel(order.status)}</p>
+        ${order.paid_at ? `<p>Pagamento confirmado em: ${formatDateTime(order.paid_at)}</p>` : ""}
         <p>Endereço: ${escapeHTML(order.shipping_address?.street)}, ${escapeHTML(order.shipping_address?.number)} — ${escapeHTML(order.shipping_address?.city)}/${escapeHTML(order.shipping_address?.state)}</p>
         <ul class="panel">${(order.items ?? []).map((item) => `<li>${escapeHTML(item.product_name)} · ${Number(item.quantity)} × ${formatPrice(item.unit_price)} = ${formatPrice(item.subtotal)}</li>`).join("")}</ul>
         <strong>Total: ${formatPrice(order.total)}</strong>

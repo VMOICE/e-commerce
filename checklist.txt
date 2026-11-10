@@ -46,13 +46,13 @@ X  Permite cadastrar ou selecionar um endereço de entrega.
 X  Exibe o resumo do pedido: itens, quantidades, preços unitários, frete e total.
 X  Carrinho vazio não permite finalizar, com erro claro (422).
 X  Item sem estoque suficiente impede a finalização e informa qual produto falhou.
-☐  Ao confirmar, é criado um pedido com status “aguardando pagamento”.
-☐  O estoque dos produtos é decrementado na criação do pedido.
-☐  O carrinho é esvaziado após a criação do pedido.
-☐  Os preços do pedido ficam congelados: alterações posteriores no catálogo não alteram pedidos já criados.
+X  Ao confirmar, é criado um pedido com status “aguardando pagamento”.
+X  O estoque dos produtos é decrementado na criação do pedido.
+X  O carrinho é esvaziado após a criação do pedido.
+X  Os preços do pedido ficam congelados: alterações posteriores no catálogo não alteram pedidos já criados.
 4.7 Pagamento simulado
-☐  A tela do pedido pendente exibe uma ação explícita de pagamento (por exemplo, “Confirmar pagamento”).
-☐  Ao acionar, o pedido passa para “pago” e registra a data e hora do pagamento.
+X  A tela do pedido pendente exibe uma ação explícita de pagamento (por exemplo, “Confirmar pagamento”).
+X  Ao acionar, o pedido passa para “pago” e registra a data e hora do pagamento.
 ☐  Nenhum dado de cartão é solicitado, trafegado ou armazenado.
 ☐  Somente o dono do pedido pode pagá-lo; outro usuário recebe 403.
 ☐  Pagar um pedido que não está aguardando pagamento retorna erro coerente (409).

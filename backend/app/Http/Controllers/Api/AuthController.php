@@ -10,12 +10,10 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules\Password;
+use Illuminate\Validation\Rule;
 
 class AuthController extends Controller
 {
-    /**
-     * Registra um novo cliente.
-     */
     public function register(
         Request $request,
         CartService $cartService
@@ -53,9 +51,6 @@ class AuthController extends Controller
         ], 201);
     }
 
-    /**
-     * Autentica um usuário existente.
-     */
     public function login(
         Request $request,
         CartService $cartService
@@ -92,9 +87,6 @@ class AuthController extends Controller
         ]);
     }
 
-    /**
-     * Retorna o usuário autenticado.
-     */
     public function me(Request $request): JsonResponse
     {
         return response()->json([
@@ -102,9 +94,27 @@ class AuthController extends Controller
         ]);
     }
 
-    /**
-     * Encerra a sessão autenticada.
-     */
+    public function updateProfile(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'name' => ['sometimes', 'required', 'string', 'max:255'],
+            'email' => [
+                'sometimes',
+                'required',
+                'email',
+                'max:255',
+                Rule::unique('users', 'email')->ignore($request->user()->id),
+            ],
+        ]);
+
+        $request->user()->update($validated);
+
+        return response()->json([
+            'message' => 'Perfil atualizado com sucesso.',
+            'user' => $request->user()->fresh(),
+        ]);
+    }
+
     public function logout(Request $request): JsonResponse
     {
         Auth::guard('web')->logout();

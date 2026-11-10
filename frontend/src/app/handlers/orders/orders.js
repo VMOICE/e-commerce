@@ -2,11 +2,12 @@ import {
     getOrders,
     getOrder,
     createOrder,
+    payOrder,
+    cancelOrder,
 } from "../../../api/orders.js";
 
 import { setState } from "../../state.js";
 
-// Carrega os pedidos do cliente autenticado.
 export async function loadOrders() {
     try {
         const response = await getOrders();
@@ -22,7 +23,6 @@ export async function loadOrders() {
     }
 }
 
-// Carrega os detalhes de um pedido específico.
 export async function loadOrder(id) {
     try {
         const response = await getOrder(id);
@@ -34,17 +34,14 @@ export async function loadOrder(id) {
     }
 }
 
-// Finaliza a compra e atualiza os dados da aplicação.
-export async function checkout() {
+export async function checkout(addressId) {
     try {
-        const response = await createOrder();
+        const response = await createOrder(addressId);
 
         const order = response.data;
 
-        // Atualiza a lista de pedidos.
         await loadOrders();
 
-        // Limpa o carrinho após a compra.
         setState({
             cart: null,
         });
@@ -54,4 +51,17 @@ export async function checkout() {
         console.error("Erro ao finalizar compra:", error);
         throw error;
     }
+
+}
+
+export async function confirmOrderPayment(id) {
+    const response = await payOrder(id);
+    await loadOrders();
+    return response.data;
+}
+
+export async function cancelCustomerOrder(id) {
+    const response = await cancelOrder(id);
+    await loadOrders();
+    return response.data;
 }

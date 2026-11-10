@@ -8,7 +8,6 @@ import {
 
 import { getState, setState } from "../../state.js";
 
-// Carrega a lista de produtos.
 export async function loadProducts(filters = {}) {
     try {
         const response = await getProducts(filters);
@@ -17,6 +16,11 @@ export async function loadProducts(filters = {}) {
         setState({
             products,
             productFilters: filters,
+            productPagination: {
+                currentPage: response.meta?.current_page ?? 1,
+                lastPage: response.meta?.last_page ?? 1,
+                total: response.meta?.total ?? products.length,
+            },
         });
 
         return products;
@@ -26,17 +30,16 @@ export async function loadProducts(filters = {}) {
     }
 }
 
-// Carrega um produto específico.
 export async function loadProduct(id) {
     try {
-        return await getProduct(id);
+        const response = await getProduct(id);
+        return response.data;
     } catch (error) {
         console.error("Erro ao carregar produto:", error);
         throw error;
     }
 }
 
-// Cadastra um novo produto e atualiza a lista.
 export async function registerProduct(productData) {
     try {
         const response = await createProduct(productData);
@@ -50,7 +53,6 @@ export async function registerProduct(productData) {
     }
 }
 
-// Atualiza um produto e atualiza a lista.
 export async function editProduct(id, productData) {
     try {
         const response = await updateProduct(id, productData);
@@ -64,7 +66,6 @@ export async function editProduct(id, productData) {
     }
 }
 
-// Desativa um produto e atualiza a lista.
 export async function removeProduct(id) {
     try {
         const response = await deactivateProduct(id);

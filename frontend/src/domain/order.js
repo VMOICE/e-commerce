@@ -1,7 +1,6 @@
 const ORDER_STATUSES = {
-    pending: "Pendente",
+    pending: "Aguardando pagamento",
     paid: "Pago",
-    processing: "Em processamento",
     shipped: "Enviado",
     delivered: "Entregue",
     cancelled: "Cancelado",

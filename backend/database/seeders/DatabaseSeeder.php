@@ -3,7 +3,12 @@
 namespace Database\Seeders;
 
 use App\Models\Category;
+use App\Models\Address;
+use App\Models\Cart;
+use App\Models\CartItem;
+use App\Models\Order;
 use App\Models\Product;
+use App\Models\User;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
@@ -354,6 +359,101 @@ class DatabaseSeeder extends Seeder
                 array_merge($productData, [
                     'category_id' => $category->id,
                 ])
+            );
+        }
+
+        $customer = User::where('email', 'cliente1@loja.test')->firstOrFail();
+        $sampleProduct = Product::where('slug', 'cabo-usbc-usbc')->firstOrFail();
+
+        $customerCart = Cart::firstOrCreate(
+            ['user_id' => $customer->id],
+            ['guest_token_hash' => null]
+        );
+        CartItem::updateOrCreate(
+            ['cart_id' => $customerCart->id, 'product_id' => $sampleProduct->id],
+            ['quantity' => 1]
+        );
+
+        $guestCart = Cart::firstOrCreate(
+            ['guest_token_hash' => hash('sha256', 'guest-demo-token')],
+            ['user_id' => null]
+        );
+        CartItem::updateOrCreate(
+            ['cart_id' => $guestCart->id, 'product_id' => $sampleProduct->id],
+            ['quantity' => 2]
+        );
+
+        $address = Address::firstOrCreate(
+            [
+                'user_id' => $customer->id,
+                'street' => 'Rua de Exemplo',
+                'number' => '100',
+            ],
+            [
+                'recipient_name' => $customer->name,
+                'postal_code' => '01000-000',
+                'neighborhood' => 'Centro',
+                'city' => 'São Paulo',
+                'state' => 'SP',
+            ]
+        );
+
+        foreach ([
+            'pending' => 'cliente1@loja.test',
+            'paid' => 'cliente2@loja.test',
+            'shipped' => 'cliente3@loja.test',
+            'delivered' => 'cliente2@loja.test',
+            'cancelled' => 'cliente3@loja.test',
+        ] as $status => $email) {
+            $user = User::where('email', $email)->firstOrFail();
+            $orderAddress = $user->id === $customer->id
+                ? $address
+                : Address::firstOrCreate(
+                    [
+                        'user_id' => $user->id,
+                        'street' => 'Rua de Exemplo',
+                        'number' => '100',
+                    ],
+                    [
+                        'recipient_name' => $user->name,
+                        'postal_code' => '01000-000',
+                        'neighborhood' => 'Centro',
+                        'city' => 'São Paulo',
+                        'state' => 'SP',
+                    ]
+                );
+
+            $order = Order::firstOrCreate(
+                ['user_id' => $user->id, 'status' => $status],
+                [
+                    'address_id' => $orderAddress->id,
+                    'shipping_address' => [
+                        'recipient_name' => $orderAddress->recipient_name,
+                        'postal_code' => $orderAddress->postal_code,
+                        'street' => $orderAddress->street,
+                        'number' => $orderAddress->number,
+                        'complement' => $orderAddress->complement,
+                        'neighborhood' => $orderAddress->neighborhood,
+                        'city' => $orderAddress->city,
+                        'state' => $orderAddress->state,
+                    ],
+                    'subtotal' => $sampleProduct->price,
+                    'shipping_cost' => '0.00',
+                    'total' => $sampleProduct->price,
+                    'paid_at' => in_array($status, ['paid', 'shipped', 'delivered'], true)
+                        ? now()
+                        : null,
+                ]
+            );
+
+            $order->items()->updateOrCreate(
+                ['product_id' => $sampleProduct->id],
+                [
+                    'product_name' => $sampleProduct->name,
+                    'product_slug' => $sampleProduct->slug,
+                    'unit_price' => $sampleProduct->price,
+                    'quantity' => 1,
+                ]
             );
         }
     }

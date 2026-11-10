@@ -7,9 +7,6 @@ use Illuminate\Http\Resources\Json\JsonResource;
 
 class OrderItemResource extends JsonResource
 {
-    /**
-     * Transforma o item do pedido em JSON.
-     */
     public function toArray(Request $request): array
     {
         [$whole, $fraction] = array_pad(

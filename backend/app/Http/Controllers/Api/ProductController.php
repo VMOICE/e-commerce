@@ -14,6 +14,19 @@ use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class ProductController extends Controller
 {
+    public function adminIndex(
+        Request $request,
+        ProductService $productService
+    ): AnonymousResourceCollection {
+        $validated = $request->validate([
+            'per_page' => ['sometimes', 'integer', 'min:1', 'max:100'],
+        ]);
+
+        return ProductResource::collection(
+            $productService->paginateAll($validated)
+        );
+    }
+
     public function index(
         Request $request,
         ProductService $productService

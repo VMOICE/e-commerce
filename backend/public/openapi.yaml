@@ -1,0 +1,383 @@
+openapi: 3.0.3
+info:
+  title: MobileStore API
+  version: 1.0.0
+  description: |
+    API REST da loja. O frete é grátis e o pagamento é simulado, sem dados de cartão.
+    Autenticação usa sessão Laravel/Sanctum por cookie; após registro ou login, o
+    carrinho de visitante é somado ao carrinho da conta, com quantidades limitadas
+    ao estoque e token de visitante invalidado.
+servers:
+  - url: /api
+    description: Mesmo host da API
+tags:
+  - name: Autenticação
+  - name: Catálogo
+  - name: Carrinho
+  - name: Pedidos
+  - name: Endereços
+  - name: Administração
+paths:
+  /register:
+    post:
+      tags: [Autenticação]
+      summary: Criar conta de cliente e mesclar carrinho visitante
+      parameters:
+        - $ref: '#/components/parameters/GuestCartToken'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, email, password, password_confirmation]
+              properties:
+                name: { type: string }
+                email: { type: string, format: email }
+                password: { type: string, minLength: 8 }
+                password_confirmation: { type: string }
+      responses:
+        '201': { description: Conta criada e sessão autenticada }
+        '422': { $ref: '#/components/responses/ValidationError' }
+  /login:
+    post:
+      tags: [Autenticação]
+      summary: Login e mesclagem do carrinho visitante
+      parameters:
+        - $ref: '#/components/parameters/GuestCartToken'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email: { type: string, format: email }
+                password: { type: string }
+      responses:
+        '200': { description: Login realizado e sessão criada }
+        '401': { description: Credenciais inválidas }
+  /logout:
+    post:
+      tags: [Autenticação]
+      security: [{ cookieAuth: [] }]
+      responses:
+        '200': { description: Sessão encerrada }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+  /me:
+    get:
+      tags: [Autenticação]
+      security: [{ cookieAuth: [] }]
+      responses:
+        '200': { description: Perfil autenticado }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+    patch:
+      tags: [Autenticação]
+      security: [{ cookieAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name: { type: string }
+                email: { type: string, format: email }
+      responses:
+        '200': { description: Perfil atualizado }
+        '422': { $ref: '#/components/responses/ValidationError' }
+  /products:
+    get:
+      tags: [Catálogo]
+      summary: Catálogo público paginado
+      parameters:
+        - { name: search, in: query, schema: { type: string } }
+        - { name: category_id, in: query, schema: { type: integer } }
+        - { name: sort, in: query, schema: { type: string, enum: [price_asc, price_desc, newest] } }
+        - { name: page, in: query, schema: { type: integer, minimum: 1 } }
+        - { name: per_page, in: query, schema: { type: integer, minimum: 1, maximum: 50 } }
+      responses:
+        '200': { description: Produtos ativos com metadados de paginação }
+  /products/{id}:
+    get:
+      tags: [Catálogo]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        '200': { description: Detalhes do produto }
+        '404': { description: Produto inexistente ou inativo }
+  /categories:
+    get:
+      tags: [Catálogo]
+      responses:
+        '200': { description: Categorias disponíveis }
+  /cart:
+    get:
+      tags: [Carrinho]
+      parameters:
+        - $ref: '#/components/parameters/GuestCartToken'
+      responses:
+        '200': { description: Itens e totais calculados pelo servidor }
+    delete:
+      tags: [Carrinho]
+      parameters:
+        - $ref: '#/components/parameters/GuestCartToken'
+      responses:
+        '200': { description: Carrinho esvaziado }
+  /cart/items:
+    post:
+      tags: [Carrinho]
+      parameters:
+        - $ref: '#/components/parameters/GuestCartToken'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [product_id, quantity]
+              properties:
+                product_id: { type: integer }
+                quantity: { type: integer, minimum: 1 }
+      responses:
+        '201': { description: Item incluído }
+        '422': { $ref: '#/components/responses/ValidationError' }
+  /cart/items/{productId}:
+    patch:
+      tags: [Carrinho]
+      parameters:
+        - $ref: '#/components/parameters/GuestCartToken'
+        - { name: productId, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [quantity]
+              properties:
+                quantity: { type: integer, minimum: 1 }
+      responses:
+        '200': { description: Quantidade atualizada }
+        '422': { $ref: '#/components/responses/ValidationError' }
+    delete:
+      tags: [Carrinho]
+      parameters:
+        - $ref: '#/components/parameters/GuestCartToken'
+        - { name: productId, in: path, required: true, schema: { type: integer } }
+      responses:
+        '200': { description: Item removido }
+  /addresses:
+    get:
+      tags: [Endereços]
+      security: [{ cookieAuth: [] }]
+      responses:
+        '200': { description: Endereços do usuário }
+    post:
+      tags: [Endereços]
+      security: [{ cookieAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/AddressInput' }
+      responses:
+        '201': { description: Endereço cadastrado }
+        '422': { $ref: '#/components/responses/ValidationError' }
+  /addresses/{id}:
+    patch:
+      tags: [Endereços]
+      security: [{ cookieAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/AddressInput' }
+      responses:
+        '200': { description: Endereço atualizado }
+        '404': { description: Endereço não encontrado }
+    delete:
+      tags: [Endereços]
+      security: [{ cookieAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        '200': { description: Endereço removido; o snapshot de pedidos antigos permanece }
+        '404': { description: Endereço não encontrado }
+  /orders:
+    get:
+      tags: [Pedidos]
+      security: [{ cookieAuth: [] }]
+      responses:
+        '200': { description: Pedidos do usuário autenticado }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+    post:
+      tags: [Pedidos]
+      summary: Criar pedido e baixar estoque dentro de transação
+      security: [{ cookieAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [address_id]
+              properties:
+                address_id: { type: integer }
+      responses:
+        '201': { description: Pedido aguardando pagamento, com preço e endereço congelados }
+        '422': { $ref: '#/components/responses/ValidationError' }
+  /orders/{id}:
+    get:
+      tags: [Pedidos]
+      security: [{ cookieAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        '200': { description: Pedido do usuário autenticado }
+        '404': { description: Pedido não encontrado }
+  /orders/{id}/pay:
+    post:
+      tags: [Pedidos]
+      summary: Confirmar pagamento acadêmico simulado
+      security: [{ cookieAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        '200': { description: Pedido marcado como pago com paid_at }
+        '403': { description: Pedido pertence a outro usuário }
+        '409': { description: Pedido não aguarda pagamento }
+  /orders/{id}/cancel:
+    post:
+      tags: [Pedidos]
+      security: [{ cookieAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        '200': { description: Pedido cancelado e estoque devolvido }
+        '404': { description: Pedido não encontrado ou pertence a outro usuário }
+        '409': { description: Pedido não pode ser cancelado nesse status }
+  /admin/products:
+    get:
+      tags: [Administração]
+      security: [{ cookieAuth: [] }]
+      responses:
+        '200': { description: Todos os produtos, inclusive inativos }
+        '403': { description: Acesso restrito a administradores }
+    post:
+      tags: [Administração]
+      security: [{ cookieAuth: [] }]
+      responses:
+        '201': { description: Produto criado }
+        '403': { description: Acesso restrito a administradores }
+  /admin/products/{id}:
+    put:
+      tags: [Administração]
+      security: [{ cookieAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        '200': { description: Produto atualizado }
+    delete:
+      tags: [Administração]
+      security: [{ cookieAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        '200': { description: Produto desativado sem apagar pedidos anteriores }
+  /admin/categories:
+    get:
+      tags: [Administração]
+      security: [{ cookieAuth: [] }]
+      responses:
+        '200': { description: Listar categorias para administração }
+    post:
+      tags: [Administração]
+      security: [{ cookieAuth: [] }]
+      responses:
+        '201': { description: Categoria criada }
+  /admin/categories/{id}:
+    put:
+      tags: [Administração]
+      security: [{ cookieAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        '200': { description: Categoria atualizada }
+    delete:
+      tags: [Administração]
+      security: [{ cookieAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        '200': { description: Categoria removida }
+        '409': { description: Categoria ainda possui produtos }
+  /admin/orders:
+    get:
+      tags: [Administração]
+      security: [{ cookieAuth: [] }]
+      parameters:
+        - { name: status, in: query, schema: { type: string, enum: [pending, paid, shipped, delivered, cancelled] } }
+      responses:
+        '200': { description: Pedidos da loja, opcionalmente filtrados }
+        '403': { description: Acesso restrito a administradores }
+  /admin/orders/{order}/status:
+    patch:
+      tags: [Administração]
+      security: [{ cookieAuth: [] }]
+      parameters:
+        - { name: order, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status: { type: string, enum: [pending, paid, shipped, delivered, cancelled] }
+      responses:
+        '200': { description: Status atualizado }
+        '409': { description: Transição de status inválida }
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: mobilestore_session
+  parameters:
+    GuestCartToken:
+      name: X-Guest-Cart-Token
+      in: header
+      required: false
+      schema: { type: string }
+      description: Token retornado ao criar o carrinho anônimo.
+  responses:
+    Unauthorized:
+      description: Sessão ausente ou expirada
+    ValidationError:
+      description: Dados inválidos
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message: { type: string }
+              errors: { type: object }
+  schemas:
+    AddressInput:
+      type: object
+      required: [recipient_name, postal_code, street, number, neighborhood, city, state]
+      properties:
+        label: { type: string, nullable: true }
+        recipient_name: { type: string }
+        postal_code: { type: string }
+        street: { type: string }
+        number: { type: string }
+        complement: { type: string, nullable: true }
+        neighborhood: { type: string }
+        city: { type: string }
+        state: { type: string }

@@ -7,7 +7,6 @@ import {
 
 import { setState } from "../../state.js";
 
-// Carrega todas as categorias.
 export async function loadCategories() {
     try {
         const response = await getCategories();
@@ -22,7 +21,6 @@ export async function loadCategories() {
     }
 }
 
-// Cadastra uma nova categoria e atualiza a lista.
 export async function registerCategory(categoryData) {
     try {
         const response = await createCategory(categoryData);
@@ -36,7 +34,6 @@ export async function registerCategory(categoryData) {
     }
 }
 
-// Atualiza uma categoria e atualiza a lista.
 export async function editCategory(id, categoryData) {
     try {
         const response = await updateCategory(id, categoryData);
@@ -50,7 +47,6 @@ export async function editCategory(id, categoryData) {
     }
 }
 
-// Exclui uma categoria e atualiza a lista.
 export async function removeCategory(id) {
     try {
         const response = await deleteCategory(id);

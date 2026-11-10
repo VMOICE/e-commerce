@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\UpdateOrderStatusRequest;
 use App\Http\Resources\OrderResource;
 use App\Models\Order;
+use App\Models\Address;
 use App\Services\OrderService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -13,9 +14,6 @@ use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class OrderController extends Controller
 {
-    /**
-     * Lista os pedidos do cliente autenticado.
-     */
     public function index(
         Request $request,
         OrderService $orderService
@@ -25,9 +23,6 @@ class OrderController extends Controller
         return OrderResource::collection($orders);
     }
 
-    /**
-     * Exibe os detalhes de um pedido específico do cliente.
-     */
     public function show(
         Request $request,
         int $id,
@@ -38,14 +33,21 @@ class OrderController extends Controller
         return new OrderResource($order);
     }
 
-    /**
-     * Cria um pedido a partir do carrinho do cliente.
-     */
     public function store(
         Request $request,
         OrderService $orderService
     ): JsonResponse {
-        $order = $orderService->createFromCart($request->user());
+        $validated = $request->validate([
+            'address_id' => [
+                'required',
+                'integer',
+                'exists:addresses,id,user_id,' . $request->user()->id,
+            ],
+        ]);
+        $address = Address::query()
+            ->where('user_id', $request->user()->id)
+            ->findOrFail($validated['address_id']);
+        $order = $orderService->createFromCart($request->user(), $address);
 
         return response()->json([
             'message' => 'Pedido criado com sucesso.',
@@ -53,20 +55,49 @@ class OrderController extends Controller
         ], 201);
     }
 
-    /**
-     * Lista todos os pedidos para o administrador.
-     */
     public function adminIndex(
+        Request $request,
         OrderService $orderService
     ): AnonymousResourceCollection {
-        $orders = $orderService->getAllOrders();
+        $validated = $request->validate([
+            'status' => [
+                'sometimes',
+                'in:pending,paid,shipped,delivered,cancelled',
+            ],
+        ]);
+        $orders = $orderService->getFilteredOrders($validated['status'] ?? null);
 
         return OrderResource::collection($orders);
     }
 
-    /**
-     * Exibe os detalhes de qualquer pedido para o administrador.
-     */
+    public function pay(
+        Request $request,
+        int $id,
+        OrderService $orderService
+    ): JsonResponse {
+        $order = Order::findOrFail($id);
+        $paidOrder = $orderService->pay($order, $request->user());
+
+        return response()->json([
+            'message' => 'Pagamento simulado confirmado.',
+            'data' => new OrderResource($paidOrder),
+        ]);
+    }
+
+    public function cancel(
+        Request $request,
+        int $id,
+        OrderService $orderService
+    ): JsonResponse {
+        $order = Order::findOrFail($id);
+        $cancelledOrder = $orderService->cancel($order, $request->user());
+
+        return response()->json([
+            'message' => 'Pedido cancelado e estoque devolvido.',
+            'data' => new OrderResource($cancelledOrder),
+        ]);
+    }
+
     public function adminShow(
         int $id,
         OrderService $orderService
@@ -76,9 +107,6 @@ class OrderController extends Controller
         return new OrderResource($order);
     }
 
-    /**
-     * Atualiza o status de um pedido pelo administrador.
-     */
     public function updateStatus(
         UpdateOrderStatusRequest $request,
         Order $order,

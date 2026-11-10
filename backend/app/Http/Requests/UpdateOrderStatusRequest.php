@@ -7,17 +7,11 @@ use Illuminate\Validation\Rule;
 
 class UpdateOrderStatusRequest extends FormRequest
 {
-    /**
-     * Apenas administradores podem atualizar pedidos.
-     */
     public function authorize(): bool
     {
         return $this->user()?->role === 'admin';
     }
 
-    /**
-     * Regras de validação da atualização do status.
-     */
     public function rules(): array
     {
         return [
@@ -27,7 +21,6 @@ class UpdateOrderStatusRequest extends FormRequest
                 Rule::in([
                     'pending',
                     'paid',
-                    'processing',
                     'shipped',
                     'delivered',
                     'cancelled',
@@ -36,9 +29,6 @@ class UpdateOrderStatusRequest extends FormRequest
         ];
     }
 
-    /**
-     * Mensagens personalizadas.
-     */
     public function messages(): array
     {
         return [

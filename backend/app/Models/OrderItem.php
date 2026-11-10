@@ -24,17 +24,11 @@ class OrderItem extends Model
         ];
     }
 
-    /**
-     * Retorna o pedido ao qual o item pertence.
-     */
     public function order(): BelongsTo
     {
         return $this->belongsTo(Order::class);
     }
 
-    /**
-     * Retorna o produto original, caso ainda exista.
-     */
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);

@@ -8,7 +8,6 @@ import {
 
 import { setState } from "../../state.js";
 
-// Carrega o carrinho atual.
 export async function loadCart() {
     try {
         const cart = await getCart();
@@ -22,7 +21,6 @@ export async function loadCart() {
     }
 }
 
-// Adiciona um produto ao carrinho.
 export async function addProductToCart(productId, quantity = 1) {
     try {
         const cart = await addToCart(productId, quantity);
@@ -36,7 +34,6 @@ export async function addProductToCart(productId, quantity = 1) {
     }
 }
 
-// Atualiza a quantidade de um produto.
 export async function changeCartItemQuantity(productId, quantity) {
     try {
         const cart = await updateCartItem(productId, quantity);
@@ -50,7 +47,6 @@ export async function changeCartItemQuantity(productId, quantity) {
     }
 }
 
-// Remove um produto do carrinho.
 export async function removeProductFromCart(productId) {
     try {
         const cart = await removeCartItem(productId);
@@ -64,7 +60,6 @@ export async function removeProductFromCart(productId) {
     }
 }
 
-// Esvazia o carrinho.
 export async function emptyCart() {
     try {
         const cart = await clearCart();

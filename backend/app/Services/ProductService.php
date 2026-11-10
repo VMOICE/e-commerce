@@ -14,21 +14,17 @@ class ProductService
             ->where('is_active', true)
             ->with('category');
 
-        // Pesquisa pelo nome do produto
         if (!empty($filters['search'])) {
-            $query->where(
-                'name',
-                'ilike',
-                '%' . $filters['search'] . '%'
+            $query->whereRaw(
+                'LOWER(name) LIKE LOWER(?)',
+                ['%' . $filters['search'] . '%']
             );
         }
 
-        // Filtro por categoria
         if (!empty($filters['category_id'])) {
             $query->where('category_id', $filters['category_id']);
         }
 
-        // Ordenação
         $sort = $filters['sort'] ?? 'newest';
 
         match ($sort) {
@@ -37,8 +33,16 @@ class ProductService
             default => $query->orderByDesc('created_at')->orderByDesc('id'),
         };
 
-        // Paginação
         return $query->paginate($filters['per_page'] ?? 12);
+    }
+
+    public function paginateAll(array $filters): LengthAwarePaginator
+    {
+        return Product::query()
+            ->with('category')
+            ->orderByDesc('created_at')
+            ->orderByDesc('id')
+            ->paginate($filters['per_page'] ?? 50);
     }
 
     public function findActiveById(int $id): Product

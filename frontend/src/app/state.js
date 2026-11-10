@@ -4,8 +4,12 @@ const state = {
 
     products: [],
     productFilters: {},
+    productPagination: null,
+    productDetail: null,
 
     categories: [],
+    addresses: [],
+    addressesLoaded: false,
 
     cart: null,
     orders: [],
@@ -16,12 +20,10 @@ const state = {
 
 const listeners = new Set();
 
-// Retorna o estado atual da aplicação.
 export function getState() {
     return state;
 }
 
-// Atualiza o estado e notifica os inscritos.
 export function setState(newState) {
     Object.assign(state, newState);
 
@@ -30,7 +32,6 @@ export function setState(newState) {
     });
 }
 
-// Registra uma função para acompanhar alterações.
 export function subscribe(listener) {
     if (typeof listener !== "function") {
         throw new TypeError("O listener precisa ser uma função.");
@@ -38,7 +39,6 @@ export function subscribe(listener) {
 
     listeners.add(listener);
 
-    // Retorna uma função para cancelar a inscrição.
     return () => {
         listeners.delete(listener);
     };

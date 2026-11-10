@@ -10,10 +10,13 @@ class Order extends Model
 {
     protected $fillable = [
         'user_id',
+        'address_id',
+        'shipping_address',
         'status',
         'subtotal',
         'shipping_cost',
         'total',
+        'paid_at',
     ];
 
     protected function casts(): array
@@ -22,22 +25,23 @@ class Order extends Model
             'subtotal' => 'decimal:2',
             'shipping_cost' => 'decimal:2',
             'total' => 'decimal:2',
+            'shipping_address' => 'array',
+            'paid_at' => 'datetime',
         ];
     }
 
-    /**
-     * Retorna o cliente responsável pelo pedido.
-     */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
-    /**
-     * Retorna os itens pertencentes ao pedido.
-     */
     public function items(): HasMany
     {
         return $this->hasMany(OrderItem::class);
+    }
+
+    public function address(): BelongsTo
+    {
+        return $this->belongsTo(Address::class);
     }
 }

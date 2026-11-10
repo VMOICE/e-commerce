@@ -1,6 +1,5 @@
 import http, { initializeCsrfCookie } from "./http.js";
 
-// Cadastra um novo usuário.
 export async function register(userData) {
     await initializeCsrfCookie();
     const response = await http.post("/register", userData);
@@ -10,7 +9,6 @@ export async function register(userData) {
     return response.data;
 }
 
-// Realiza o login.
 export async function login(credentials) {
     await initializeCsrfCookie();
     const response = await http.post("/login", credentials);
@@ -20,14 +18,17 @@ export async function login(credentials) {
     return response.data;
 }
 
-// Recupera os dados do usuário autenticado.
 export async function getMe() {
     const response = await http.get("/me");
 
     return response.data.user;
 }
 
-// Realiza o logout.
+export async function updateMe(profile) {
+    const response = await http.patch("/me", profile);
+    return response.data;
+}
+
 export async function logout() {
     await initializeCsrfCookie();
     const response = await http.post("/logout");

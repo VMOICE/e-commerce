@@ -1,11 +1,8 @@
 import axios from "axios";
 
-const API_BASE_URL = import.meta.env.DEV
-    ? "/api"
-    : "http://localhost:8081/api";
-const CSRF_COOKIE_URL = import.meta.env.DEV
-    ? "/sanctum/csrf-cookie"
-    : API_BASE_URL.replace(/\/api\/?$/, "/sanctum/csrf-cookie");
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL
+    ?? (import.meta.env.DEV ? "/api" : "http://localhost:8081/api");
+const CSRF_COOKIE_URL = API_BASE_URL.replace(/\/api\/?$/, "/sanctum/csrf-cookie");
 
 const http = axios.create({
     baseURL: API_BASE_URL,

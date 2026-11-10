@@ -13,33 +13,46 @@ export async function initializeApp() {
     });
 
     try {
-        // Carrega os dados públicos do catálogo.
+        // A verificação da sessão não depende dos dados públicos do catálogo.
+        localStorage.removeItem("auth_token");
+
+        const authenticatedUserPromise = loadAuthenticatedUser()
+            .then(() => ({
+                isAuthenticated: true,
+            }))
+            .catch((error) => {
+                if (error.response?.status !== 401) {
+                    return { error };
+                }
+
+                setState({
+                    user: null,
+                    isAuthenticated: false,
+                    orders: [],
+                });
+
+                return {
+                    isAuthenticated: false,
+                };
+            });
+
         await Promise.all([
             loadProducts(),
             loadCategories(),
         ]);
 
-        // Remove tokens usados pelo fluxo antigo de autenticação.
-        localStorage.removeItem("auth_token");
+        setState({
+            loading: false,
+        });
 
-        let isAuthenticated = false;
+        const authentication = await authenticatedUserPromise;
 
-        try {
-            await loadAuthenticatedUser();
-            isAuthenticated = true;
-        } catch (error) {
-            if (error.response?.status !== 401) {
-                throw error;
-            }
-
-            setState({
-                user: null,
-                isAuthenticated: false,
-                orders: [],
-            });
+        if ("error" in authentication) {
+            throw authentication.error;
         }
 
-        // Carrega os dados conforme o estado da autenticação.
+        const { isAuthenticated } = authentication;
+
         if (isAuthenticated) {
             await Promise.all([
                 loadCart(),

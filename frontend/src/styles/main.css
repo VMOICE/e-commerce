@@ -389,6 +389,167 @@ button {
         flex-direction: column;
     }
 
+    .main-content {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .page-container {
+        flex: 1;
+    }
+
+    .sidebar-link span:first-child {
+        min-width: 22px;
+        text-align: center;
+    }
+
+    .topbar-actions a,
+    .logo,
+    .product-name a {
+        text-decoration: none;
+    }
+
+    .logo span {
+        color: var(--color-primary);
+    }
+
+    .empty-state,
+    .message {
+        padding: 14px;
+        border-radius: 6px;
+        background: var(--color-card);
+    }
+
+    .error {
+        color: #9c2525;
+    }
+
+    .page-message:empty {
+        display: none;
+    }
+
+    .product-name a {
+        color: inherit;
+    }
+
+    .pagination,
+    .cart-row,
+    .cart-summary,
+    .order-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+        margin-top: 16px;
+    }
+
+    .pagination > div,
+    .topbar-actions {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .stack {
+        display: grid;
+        gap: 14px;
+    }
+
+    .cart-product {
+        display: grid;
+        gap: 6px;
+        flex: 1;
+    }
+
+    .quantity-form {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .quantity-input {
+        width: 100px;
+    }
+
+    .cart-summary {
+        justify-content: flex-end;
+    }
+
+    .form-panel {
+        width: 100%;
+        max-width: 680px;
+        margin: 0 auto;
+    }
+
+    .form-panel form,
+    .admin-grid form {
+        display: grid;
+        gap: 12px;
+    }
+
+    .admin-edit-form,
+    .category-edit-form,
+    .address-edit-form {
+        display: grid;
+        gap: 12px;
+    }
+
+    .admin-edit-form label,
+    .category-edit-form label,
+    .address-edit-form label {
+        display: grid;
+        gap: 6px;
+    }
+
+    .form-panel label,
+    .admin-grid label {
+        display: grid;
+        gap: 6px;
+    }
+
+    .detail-layout {
+        display: grid;
+        grid-template-columns: minmax(240px, 1fr) minmax(260px, 1fr);
+        gap: 28px;
+        margin-top: 16px;
+    }
+
+    .detail-image {
+        min-height: 320px;
+    }
+
+    .admin-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 16px;
+    }
+
+    .order-row > div {
+        display: grid;
+        gap: 6px;
+    }
+
+    .footer {
+        margin-top: 32px;
+    }
+
+    @media (max-width: 700px) {
+        .cart-row,
+        .order-row {
+            align-items: stretch;
+            flex-direction: column;
+        }
+
+        .detail-layout,
+        .admin-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .topbar-actions {
+            flex-wrap: wrap;
+        }
+    }
+
     .sidebar {
         width: 100%;
         min-width: 0;

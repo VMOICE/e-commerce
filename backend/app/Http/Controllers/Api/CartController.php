@@ -17,9 +17,6 @@ class CartController extends Controller
     ) {
     }
 
-    /**
-     * Obtém o carrinho do usuário ou visitante.
-     */
     private function currentCart(Request $request): array
     {
         $user = $request->user('web');
@@ -36,9 +33,6 @@ class CartController extends Controller
         return [$cart, $newToken];
     }
 
-    /**
-     * Retorna o carrinho atual.
-     */
     public function show(Request $request): JsonResponse
     {
         [$cart, $newToken] = $this->currentCart($request);
@@ -51,9 +45,6 @@ class CartController extends Controller
         ]);
     }
 
-    /**
-     * Adiciona um produto.
-     */
     public function store(Request $request): JsonResponse
     {
         $validated = $request->validate([
@@ -76,9 +67,6 @@ class CartController extends Controller
         ], 201);
     }
 
-    /**
-     * Atualiza a quantidade de um produto.
-     */
     public function update(
         Request $request,
         int $productId
@@ -102,9 +90,6 @@ class CartController extends Controller
         ]);
     }
 
-    /**
-     * Remove um produto.
-     */
     public function destroy(
         Request $request,
         int $productId
@@ -120,9 +105,6 @@ class CartController extends Controller
         ]);
     }
 
-    /**
-     * Esvazia o carrinho.
-     */
     public function clear(Request $request): JsonResponse
     {
         [$cart, $newToken] = $this->currentCart($request);

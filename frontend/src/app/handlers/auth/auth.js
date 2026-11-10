@@ -18,6 +18,8 @@ export async function registerUser(userData) {
             cart: response.cart,
             addresses: [],
             addressesLoaded: false,
+            selectedOrder: null,
+            selectedOrderNotFoundId: null,
         });
 
         return response;
@@ -38,6 +40,8 @@ export async function loginUser(credentials) {
             cart: response.cart,
             addresses: [],
             addressesLoaded: false,
+            selectedOrder: null,
+            selectedOrderNotFoundId: null,
         });
 
         return response;
@@ -78,6 +82,7 @@ export async function logoutUser() {
             addresses: [],
             addressesLoaded: false,
             selectedOrder: null,
+            selectedOrderNotFoundId: null,
             adminOrders: undefined,
             adminProducts: undefined,
         });

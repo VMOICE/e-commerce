@@ -15,7 +15,10 @@ const state = {
 
     cart: null,
     orders: [],
+    selectedOrder: null,
+    selectedOrderNotFoundId: null,
 
+    feedback: null,
     loading: false,
     error: null,
 };

@@ -53,20 +53,20 @@ X  Os preços do pedido ficam congelados: alterações posteriores no catálogo 
 4.7 Pagamento simulado
 X  A tela do pedido pendente exibe uma ação explícita de pagamento (por exemplo, “Confirmar pagamento”).
 X  Ao acionar, o pedido passa para “pago” e registra a data e hora do pagamento.
-☐  Nenhum dado de cartão é solicitado, trafegado ou armazenado.
-☐  Somente o dono do pedido pode pagá-lo; outro usuário recebe 403.
-☐  Pagar um pedido que não está aguardando pagamento retorna erro coerente (409).
-☐  A interface deixa claro que o pagamento é simulado para fins acadêmicos.
+X  Nenhum dado de cartão é solicitado, trafegado ou armazenado.
+X  Somente o dono do pedido pode pagá-lo; outro usuário recebe 403.
+X  Pagar um pedido que não está aguardando pagamento retorna erro coerente (409).
+X  A interface deixa claro que o pagamento é simulado para fins acadêmicos.
 4.8 Meus pedidos
-☐  Lista os pedidos do usuário com identificador, data, total e status.
-☐  Permite abrir o detalhe do pedido.
-☐  O detalhe exibe itens, quantidades, preços praticados, endereço de entrega e status atual.
-☐  O usuário só enxerga os próprios pedidos; acessar pedido alheio retorna 403 ou 404.
-☐  O cliente consegue cancelar um pedido enquanto ele estiver aguardando pagamento, devolvendo o estoque.
+X  Lista os pedidos do usuário com identificador, data, total e status.
+X  Permite abrir o detalhe do pedido.
+X  O detalhe exibe itens, quantidades, preços praticados, endereço de entrega e status atual.
+X  O usuário só enxerga os próprios pedidos; acessar pedido alheio retorna 403 ou 404.
+X  O cliente consegue cancelar um pedido enquanto ele estiver aguardando pagamento, devolvendo o estoque.
 4.9 Área administrativa
 X  Acessível somente a usuários com papel admin.
-☐  Permite criar, editar e excluir produtos (nome, descrição, preço, estoque, categoria, imagem e ativo/inativo).
-☐  Permite criar, editar e excluir categorias.
+X  Permite criar, editar e excluir produtos (nome, descrição, preço, estoque, categoria, imagem e ativo/inativo).
+X  Permite criar, editar e excluir categorias.
 ☐  Impede excluir categoria com produtos vinculados, ou adota outro comportamento claramente documentado.
 ☐  Permite atualizar o estoque de um produto.
 ☐  Lista todos os pedidos da loja, com filtro por status.
@@ -79,3 +79,42 @@ X  Acessível somente a usuários com papel admin.
 ☐  O item ativo da navegação é visualmente identificado.
 ☐  Rotas inexistentes possuem tratamento adequado, como redirecionamento ou página 404.
 ☐  Rotas protegidas acessadas sem autenticação redirecionam para o login.
+
+
+10. Checklist de entrega
+
+10.1 Funcionalidades obrigatórias
+☐  Registro, login e logout funcionando, com papéis cliente e admin.
+☐  Catálogo público com busca, filtro por categoria, ordenação e paginação.
+☐  Página de produto com detalhes e ação de adicionar ao carrinho.
+☐  Carrinho funcional sem login, persistido no servidor por sessão.
+☐  Fusão do carrinho de visitante com o carrinho da conta no login.
+☐  Alterar quantidade e remover itens do carrinho, com totais calculados no servidor.
+☐  Checkout com endereço de entrega e criação do pedido.
+☐  Baixa de estoque na criação do pedido e devolução no cancelamento.
+☐  Pagamento simulado alterando o status do pedido.
+☐  Meus pedidos com listagem e tela de detalhe.
+☐  Área administrativa com CRUD de produtos e categorias e gestão dos status dos pedidos.
+☐  Navegação com catálogo, carrinho, meus pedidos, perfil e painel do admin.
+☐  Não há elementos visuais sem funcionamento apenas para imitar uma loja real.
+10.2 Backend e banco de dados
+☐  API Laravel organizada no padrão MVC + Service Layer.
+☐  Regras de carrinho, estoque e pedido implementadas na camada de Service.
+☐  Migrations e relacionamentos principais configurados.
+☐  Autenticação e autorização aplicadas, incluindo o bloqueio das rotas administrativas.
+☐  Unicidade de carrinho + produto e limites de estoque respeitados.
+☐  Criação do pedido executada dentro de uma transação.
+☐  Preços congelados nos itens do pedido.
+☐  Seeders populam o banco de desenvolvimento.
+☐  Banco PostgreSQL ou MySQL funcionando.
+☐  Respostas e códigos HTTP consistentes.
+10.3 Docker, Swagger UI e repositório
+☐  Frontend possui um único Dockerfile.
+☐  Backend possui Dockerfile.dev, Dockerfile de produção.
+☐  Projeto tem um compose.yaml que sobe todos os serviços necessários.
+☐  Swagger UI está acessível e permite consultar a documentação da API.
+☐  Repositório no GitHub está acessível pelo link enviado.
+☐  README contém as instruções de execução, as credenciais dos seeders e a regra de fusão de carrinho adotada.
+☐  .env real não foi versionado e existe um .env.example sem segredos reais.
+10.4 Extra opcional
+☐  Aplicação hospedada com registro e compra por usuários reais: +10 pontos.

@@ -60,6 +60,8 @@ const categoryImagePaths = {
     "audio-e-acessorios": audioIllustration,
 };
 const productDetailRequests = new Set();
+const orderDetailRequests = new Set();
+let feedbackId = 0;
 
 function escapeHTML(value) {
     return String(value ?? "").replace(/[&<>"']/g, (character) => ({
@@ -535,7 +537,32 @@ function renderOrderList(state, includeTitle = true) {
 function renderOrderDetail(state, id) {
     const order = state.selectedOrder;
     if (!order || String(order.id) !== String(id)) {
-        loadOrder(id).then((data) => setState({ selectedOrder: data })).catch(showError);
+        if (String(state.selectedOrderNotFoundId) === String(id)) {
+            return `
+                <section class="panel empty-state">
+                    <h1>Pedido indisponível</h1>
+                    <p>Este pedido não existe ou você não tem permissão para acessá-lo.</p>
+                    <a class="btn" href="#pedidos">Voltar aos meus pedidos</a>
+                </section>
+            `;
+        }
+
+        if (!orderDetailRequests.has(String(id))) {
+            orderDetailRequests.add(String(id));
+            loadOrder(id)
+                .then((data) => setState({
+                    selectedOrder: data,
+                    selectedOrderNotFoundId: null,
+                }))
+                .catch((error) => {
+                    if (error.response?.status === 404) {
+                        setState({ selectedOrderNotFoundId: String(id) });
+                        return;
+                    }
+                    showError(error);
+                })
+                .finally(() => orderDetailRequests.delete(String(id)));
+        }
         return `<p>Carregando pedido...</p>`;
     }
     return `
@@ -684,17 +711,31 @@ function renderAdmin(state, section = "inicio") {
 }
 
 function showError(error) {
-    const target = document.querySelector(".page-message");
     const message = error.response?.data?.message
         ?? Object.values(error.response?.data?.errors ?? {}).flat()[0]
         ?? error.message
         ?? "Não foi possível concluir a operação.";
-    if (target) {
-        target.textContent = message;
-        target.classList.add("error");
-    } else {
+
+    if (!document.querySelector("#app")) {
         console.error(message, error);
+        return;
     }
+
+    showFeedback("error", message);
+}
+
+function showSuccess(message) {
+    showFeedback("success", message);
+}
+
+function showFeedback(type, message) {
+    const id = ++feedbackId;
+    setState({ feedback: { id, type, message } });
+    window.setTimeout(() => {
+        if (getState().feedback?.id === id) {
+            setState({ feedback: null });
+        }
+    }, 5000);
 }
 
 function formValues(form) {
@@ -715,7 +756,7 @@ function validateRequiredFields(form) {
             field.closest("label")?.textContent.trim() ?? field.name
         );
         showError(new Error(`Preencha os campos obrigatórios: ${labels.join(", ")}.`));
-        incompleteFields[0].focus();
+        focusRenderedFormField(form, incompleteFields[0].name);
         return false;
     }
 
@@ -723,7 +764,7 @@ function validateRequiredFields(form) {
     if (nameField && !/^[\p{L}\s]+$/u.test(nameField.value.trim())) {
         nameField.setAttribute("aria-invalid", "true");
         showError(new Error("O campo Nome deve conter apenas letras e espaços."));
-        nameField.focus();
+        focusRenderedFormField(form, nameField.name);
         return false;
     }
 
@@ -731,11 +772,18 @@ function validateRequiredFields(form) {
     if (invalidField) {
         invalidField.setAttribute("aria-invalid", "true");
         showError(new Error(`Verifique o campo ${invalidField.closest("label")?.textContent.trim() ?? invalidField.name}.`));
-        invalidField.focus();
+        focusRenderedFormField(form, invalidField.name);
         return false;
     }
 
     return true;
+}
+
+function focusRenderedFormField(form, fieldName) {
+    const renderedForm = form.id ? document.getElementById(form.id) : null;
+    const field = [...(renderedForm?.elements ?? [])].find((element) => element.name === fieldName);
+    field?.setAttribute("aria-invalid", "true");
+    field?.focus();
 }
 
 function bindEvents(app, page, id) {
@@ -780,6 +828,7 @@ function bindEvents(app, page, id) {
             button.disabled = true;
             try {
                 await addProductToCart(Number(button.dataset.addProduct));
+                showSuccess("Produto adicionado ao carrinho.");
                 location.hash = "#carrinho";
             } catch (error) {
                 showError(error);
@@ -792,6 +841,7 @@ function bindEvents(app, page, id) {
         const quantity = Number(app.querySelector("#detail-quantity").value);
         try {
             await addProductToCart(Number(event.currentTarget.dataset.detailAdd), quantity);
+            showSuccess("Produto adicionado ao carrinho.");
             location.hash = "#carrinho";
         } catch (error) {
             showError(error);
@@ -806,11 +856,17 @@ function bindEvents(app, page, id) {
                     Number(form.dataset.cartForm),
                     Number(new FormData(form).get("quantity"))
                 );
+                showSuccess("Quantidade do item atualizada.");
             } catch (error) { showError(error); }
         });
     });
     app.querySelectorAll("[data-remove-item]").forEach((button) => {
-        button.addEventListener("click", () => removeProductFromCart(Number(button.dataset.removeItem)).catch(showError));
+        button.addEventListener("click", async () => {
+            try {
+                await removeProductFromCart(Number(button.dataset.removeItem));
+                showSuccess("Produto removido do carrinho.");
+            } catch (error) { showError(error); }
+        });
     });
     app.querySelector("#checkout-button")?.addEventListener("click", () => {
         if (!getState().isAuthenticated) sessionStorage.setItem("after-login", "#checkout");
@@ -841,13 +897,15 @@ function bindEvents(app, page, id) {
 
     app.querySelector("#address-form")?.addEventListener("submit", async (event) => {
         event.preventDefault();
+        const form = event.currentTarget;
         try {
-            const response = await createAddress(formValues(event.currentTarget));
+            const response = await createAddress(formValues(form));
+            form.reset();
             setState({
                 addresses: [...(getState().addresses ?? []), response.data],
                 addressesLoaded: true,
             });
-            event.currentTarget.reset();
+            showSuccess("Endereço cadastrado com sucesso.");
         } catch (error) { showError(error); }
     });
     app.querySelector("#profile-form")?.addEventListener("submit", async (event) => {
@@ -857,6 +915,7 @@ function bindEvents(app, page, id) {
         try {
             const response = await updateMe(formValues(form));
             setState({ user: response.user });
+            showSuccess("Perfil atualizado com sucesso.");
         } catch (error) { showError(error); }
     });
     app.querySelectorAll("[data-address-id]").forEach((form) => {
@@ -866,6 +925,7 @@ function bindEvents(app, page, id) {
                 await updateAddress(form.dataset.addressId, formValues(form));
                 const response = await getAddresses();
                 setState({ addresses: response.data, addressesLoaded: true });
+                showSuccess("Endereço atualizado com sucesso.");
             } catch (error) { showError(error); }
         });
     });
@@ -875,6 +935,7 @@ function bindEvents(app, page, id) {
                 await deleteAddress(button.dataset.deleteAddress);
                 const response = await getAddresses();
                 setState({ addresses: response.data, addressesLoaded: true });
+                showSuccess("Endereço removido com sucesso.");
             } catch (error) { showError(error); }
         });
     });
@@ -891,6 +952,7 @@ function bindEvents(app, page, id) {
             }
             const order = await checkout(Number(addressId));
             setState({ selectedOrder: order });
+            showSuccess("Pedido criado com sucesso. O pagamento é simulado.");
             location.hash = `#pedido/${order.id}`;
         } catch (error) { showError(error); }
     });
@@ -909,11 +971,17 @@ function bindEvents(app, page, id) {
                 if (page === "pedido") {
                     setState({ selectedOrder: await loadOrder(id) });
                 }
+                showSuccess("Pagamento simulado confirmado com sucesso.");
             } catch (error) { showError(error); }
         });
     });
     app.querySelectorAll("[data-cancel-order]").forEach((button) => {
-        button.addEventListener("click", () => cancelCustomerOrder(Number(button.dataset.cancelOrder)).catch(showError));
+        button.addEventListener("click", async () => {
+            try {
+                await cancelCustomerOrder(Number(button.dataset.cancelOrder));
+                showSuccess("Pedido cancelado; o estoque foi devolvido.");
+            } catch (error) { showError(error); }
+        });
     });
     app.querySelectorAll("[data-order-detail]").forEach((button) => {
         button.addEventListener("click", async () => {
@@ -927,22 +995,26 @@ function bindEvents(app, page, id) {
 
     app.querySelector("#admin-product-form")?.addEventListener("submit", async (event) => {
         event.preventDefault();
+        const form = event.currentTarget;
         try {
-            const values = formValues(event.currentTarget);
+            const values = formValues(form);
             values.category_id = Number(values.category_id);
             values.price = Number(values.price).toFixed(2);
             values.stock = Number(values.stock);
             await createProduct(values);
+            form.reset();
             await loadProducts(getState().productFilters);
-            event.currentTarget.reset();
+            showSuccess("Produto cadastrado com sucesso.");
         } catch (error) { showError(error); }
     });
     app.querySelector("#admin-category-form")?.addEventListener("submit", async (event) => {
         event.preventDefault();
+        const form = event.currentTarget;
         try {
-            await createCategory(formValues(event.currentTarget));
+            await createCategory(formValues(form));
+            form.reset();
             await loadCategories();
-            event.currentTarget.reset();
+            showSuccess("Categoria cadastrada com sucesso.");
         } catch (error) { showError(error); }
     });
     app.querySelectorAll("[data-admin-product]").forEach((form) => {
@@ -958,6 +1030,7 @@ function bindEvents(app, page, id) {
                 const response = await getAdminProducts();
                 setState({ adminProducts: response.data });
                 await loadProducts(getState().productFilters);
+                showSuccess("Produto atualizado com sucesso.");
             } catch (error) { showError(error); }
         });
     });
@@ -968,6 +1041,7 @@ function bindEvents(app, page, id) {
                 const response = await getAdminProducts();
                 setState({ adminProducts: response.data });
                 await loadProducts(getState().productFilters);
+                showSuccess("Produto desativado com sucesso.");
             } catch (error) { showError(error); }
         });
     });
@@ -977,6 +1051,7 @@ function bindEvents(app, page, id) {
             try {
                 await updateCategory(form.dataset.adminCategory, formValues(form));
                 await loadCategories();
+                showSuccess("Categoria atualizada com sucesso.");
             } catch (error) { showError(error); }
         });
     });
@@ -985,6 +1060,7 @@ function bindEvents(app, page, id) {
             try {
                 await deleteCategory(button.dataset.deleteCategory);
                 await loadCategories();
+                showSuccess("Categoria excluída com sucesso.");
             } catch (error) { showError(error); }
         });
     });
@@ -1002,6 +1078,7 @@ function bindEvents(app, page, id) {
                 await updateOrderStatus(form.dataset.adminOrder, status);
                 const orders = await getAdminOrders();
                 setState({ adminOrders: orders.data });
+                showSuccess("Status do pedido atualizado com sucesso.");
             } catch (error) { showError(error); }
         });
     });
@@ -1054,7 +1131,7 @@ export function renderApp() {
             <main class="main-content">
                 ${renderTopbar(state)}
                 <div class="page-container">
-                    <p class="page-message" role="status" aria-live="polite"></p>
+                    <p class="page-message ${state.feedback?.type ?? ""}" role="${state.feedback?.type === "error" ? "alert" : "status"}" aria-live="${state.feedback?.type === "error" ? "assertive" : "polite"}">${escapeHTML(state.feedback?.message ?? "")}</p>
                     ${renderPage(state, page, id)}
                 </div>
                 <footer class="footer">MobileStore © ${new Date().getFullYear()} · Frete grátis</footer>

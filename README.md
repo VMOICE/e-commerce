@@ -14,7 +14,6 @@ docker compose exec api php artisan db:seed
 
 - Frontend: http://localhost:5173
 - API: http://localhost:8081/api
-- Swagger UI: http://localhost:8081/docs.html
 - OpenAPI: http://localhost:8081/openapi.yaml
 
 O volume `postgres_data` persiste o banco; `product_storage` persiste as imagens enviadas para `storage/app/public`. Os produtos de demonstração usam ilustrações SVG locais por categoria até que uma imagem de produto seja enviada. Para expor imagens enviadas, execute uma vez:

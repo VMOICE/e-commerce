@@ -163,7 +163,8 @@ export function renderProductDetail(state, id, onError) {
                 <p>${Number(product.stock) > 0 ? `${Number(product.stock)} disponíveis` : "Indisponível"}</p>
                 <label for="detail-quantity">Quantidade</label>
                 <input class="form-control quantity-input" id="detail-quantity" type="number" min="1"
-                    max="${Number(product.stock)}" value="1" ${Number(product.stock) < 1 ? "disabled" : ""}>
+                    max="${Math.min(Number(product.stock), 1000)}" step="1" value="1"
+                    ${Number(product.stock) < 1 ? "disabled" : ""}>
                 <button class="btn" type="button" data-detail-add="${Number(product.id)}"
                     ${Number(product.stock) < 1 ? "disabled" : ""}>Adicionar ao carrinho</button>
             </div>

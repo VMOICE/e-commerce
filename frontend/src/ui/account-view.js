@@ -31,8 +31,8 @@ export function renderAccount(state, section = "perfil", onError) {
             <section class="panel form-panel">
                 <form id="profile-form" class="stack" novalidate>
                     <h2>Dados pessoais</h2>
-                    <label>Nome<input class="form-control" name="name" value="${escapeHTML(state.user?.name)}" required></label>
-                    <label>E-mail<input class="form-control" name="email" type="email" value="${escapeHTML(state.user?.email)}" required></label>
+                    <label>Nome<input class="form-control" name="name" value="${escapeHTML(state.user?.name)}" required maxlength="255"></label>
+                    <label>E-mail<input class="form-control" name="email" type="email" value="${escapeHTML(state.user?.email)}" required maxlength="255"></label>
                     <button class="btn">Salvar perfil</button>
                 </form>
             </section>
@@ -45,14 +45,15 @@ export function renderAccount(state, section = "perfil", onError) {
                         ? `<div class="stack">${state.addresses.map((address) => `
                             <form class="panel address-edit-form" data-address-id="${Number(address.id)}">
                                 <strong>${escapeHTML(address.label || "Endereço")}</strong>
-                                <label>Nome de quem recebe<input class="form-control" name="recipient_name" value="${escapeHTML(address.recipient_name)}" required></label>
-                                <label>CEP<input class="form-control" name="postal_code" value="${escapeHTML(address.postal_code)}" required></label>
-                                <label>Rua<input class="form-control" name="street" value="${escapeHTML(address.street)}" required></label>
-                                <label>Número<input class="form-control" name="number" value="${escapeHTML(address.number)}" required></label>
-                                <label>Complemento<input class="form-control" name="complement" value="${escapeHTML(address.complement)}"></label>
-                                <label>Bairro<input class="form-control" name="neighborhood" value="${escapeHTML(address.neighborhood)}" required></label>
-                                <label>Cidade<input class="form-control" name="city" value="${escapeHTML(address.city)}" required></label>
-                                <label>Estado<input class="form-control" name="state" value="${escapeHTML(address.state)}" required></label>
+                                <label>Nome de quem recebe<input class="form-control" name="recipient_name" value="${escapeHTML(address.recipient_name)}" required maxlength="150"></label>
+                                <label>CEP<input class="form-control" name="postal_code" type="text" inputmode="numeric"
+                                    autocomplete="postal-code" placeholder="00000-000" pattern="[0-9]{5}-[0-9]{3}"
+                                    title="Informe o CEP no formato 00000-000" value="${escapeHTML(address.postal_code)}" required maxlength="9"></label>
+                                <label>Rua<input class="form-control" name="street" value="${escapeHTML(address.street)}" required maxlength="180"></label>
+                                <label>Número<input class="form-control" name="number" value="${escapeHTML(address.number)}" required maxlength="30"></label>
+                                <label>Bairro<input class="form-control" name="neighborhood" value="${escapeHTML(address.neighborhood)}" required maxlength="120"></label>
+                                <label>Cidade<input class="form-control" name="city" value="${escapeHTML(address.city)}" required maxlength="120"></label>
+                                <label>Estado<input class="form-control" name="state" value="${escapeHTML(address.state)}" required maxlength="80"></label>
                                 <button class="btn btn-secondary">Atualizar endereço</button>
                                 <button class="btn" type="button" data-delete-address="${Number(address.id)}">Remover</button>
                             </form>

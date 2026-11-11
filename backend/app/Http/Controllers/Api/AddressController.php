@@ -21,10 +21,9 @@ class AddressController extends Controller
         $validated = $request->validate([
             'label' => ['nullable', 'string', 'max:80'],
             'recipient_name' => ['required', 'string', 'max:150'],
-            'postal_code' => ['required', 'string', 'max:20'],
+            'postal_code' => ['required', 'string', 'regex:/^[0-9]{5}-[0-9]{3}$/'],
             'street' => ['required', 'string', 'max:180'],
             'number' => ['required', 'string', 'max:30'],
-            'complement' => ['nullable', 'string', 'max:120'],
             'neighborhood' => ['required', 'string', 'max:120'],
             'city' => ['required', 'string', 'max:120'],
             'state' => ['required', 'string', 'max:80'],
@@ -44,10 +43,9 @@ class AddressController extends Controller
         $validated = $request->validate([
             'label' => ['sometimes', 'nullable', 'string', 'max:80'],
             'recipient_name' => ['sometimes', 'required', 'string', 'max:150'],
-            'postal_code' => ['sometimes', 'required', 'string', 'max:20'],
+            'postal_code' => ['sometimes', 'required', 'string', 'regex:/^[0-9]{5}-[0-9]{3}$/'],
             'street' => ['sometimes', 'required', 'string', 'max:180'],
             'number' => ['sometimes', 'required', 'string', 'max:30'],
-            'complement' => ['sometimes', 'nullable', 'string', 'max:120'],
             'neighborhood' => ['sometimes', 'required', 'string', 'max:120'],
             'city' => ['sometimes', 'required', 'string', 'max:120'],
             'state' => ['sometimes', 'required', 'string', 'max:80'],

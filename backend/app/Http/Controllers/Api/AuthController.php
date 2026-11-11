@@ -56,7 +56,7 @@ class AuthController extends Controller
         CartService $cartService
     ): JsonResponse {
         $validated = $request->validate([
-            'email' => ['required', 'email'],
+            'email' => ['required', 'email', 'max:255'],
             'password' => ['required', 'string'],
         ]);
 

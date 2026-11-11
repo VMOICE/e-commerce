@@ -18,7 +18,6 @@ class Address extends Model
         'postal_code',
         'street',
         'number',
-        'complement',
         'neighborhood',
         'city',
         'state',

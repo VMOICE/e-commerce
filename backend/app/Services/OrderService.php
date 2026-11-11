@@ -90,7 +90,6 @@ class OrderService
                     'postal_code' => $address->postal_code,
                     'street' => $address->street,
                     'number' => $address->number,
-                    'complement' => $address->complement,
                     'neighborhood' => $address->neighborhood,
                     'city' => $address->city,
                     'state' => $address->state,

@@ -39,14 +39,14 @@ export function renderAdmin(state, section = "produtos", onError, refreshProduct
             <section class="panel stack admin-form">
                 <h2>Cadastrar produto</h2>
                 <form id="admin-product-form" class="stack">
-                    <label>Nome<input class="form-control" name="name" required></label>
-                    <label>Slug<input class="form-control" name="slug" required></label>
+                    <label>Nome<input class="form-control" name="name" required maxlength="150"></label>
+                    <label>Slug<input class="form-control" name="slug" required maxlength="180" pattern="[a-z0-9]+(-[a-z0-9]+)*"></label>
                     <label>Categoria<select class="form-control" name="category_id" required>
                         ${(state.categories ?? []).map((category) => `<option value="${Number(category.id)}">${escapeHTML(category.name)}</option>`).join("")}
                     </select></label>
-                    <label>Descrição<textarea class="form-control" name="description"></textarea></label>
-                    <label>Preço<input class="form-control" name="price" type="number" min="0" step="0.01" required></label>
-                    <label>Estoque<input class="form-control" name="stock" type="number" min="0" required></label>
+                    <label>Descrição<textarea class="form-control" name="description" maxlength="5000"></textarea></label>
+                    <label>Preço<input class="form-control" name="price" type="number" min="0" max="99999999.99" step="0.01" required></label>
+                    <label>Estoque<input class="form-control" name="stock" type="number" min="0" max="2147483647" step="1" required></label>
                     <div class="admin-image-fields">
                         <label>Caminho ou URL da imagem
                             <input class="form-control" name="image_path" maxlength="255">
@@ -79,14 +79,14 @@ export function renderAdmin(state, section = "produtos", onError, refreshProduct
                     <form class="panel admin-edit-form" data-admin-product="${Number(product.id)}"
                         enctype="multipart/form-data">
                         <strong>Produto #${Number(product.id)}</strong>
-                        <label>Nome<input class="form-control" name="name" value="${escapeHTML(product.name)}" required></label>
-                        <label>Slug<input class="form-control" name="slug" value="${escapeHTML(product.slug)}" required></label>
+                        <label>Nome<input class="form-control" name="name" value="${escapeHTML(product.name)}" required maxlength="150"></label>
+                        <label>Slug<input class="form-control" name="slug" value="${escapeHTML(product.slug)}" required maxlength="180" pattern="[a-z0-9]+(-[a-z0-9]+)*"></label>
                         <label>Categoria<select class="form-control" name="category_id">
                             ${(state.categories ?? []).map((category) => `<option value="${Number(category.id)}" ${Number(category.id) === Number(product.category_id) ? "selected" : ""}>${escapeHTML(category.name)}</option>`).join("")}
                         </select></label>
-                        <label>Descrição<textarea class="form-control" name="description">${escapeHTML(product.description)}</textarea></label>
-                        <label>Preço<input class="form-control" name="price" type="number" step="0.01" min="0" value="${escapeHTML(product.price)}" required></label>
-                        <label>Estoque<input class="form-control" name="stock" type="number" min="0" value="${Number(product.stock)}" required></label>
+                        <label>Descrição<textarea class="form-control" name="description" maxlength="5000">${escapeHTML(product.description)}</textarea></label>
+                        <label>Preço<input class="form-control" name="price" type="number" step="0.01" min="0" max="99999999.99" value="${escapeHTML(product.price)}" required></label>
+                        <label>Estoque<input class="form-control" name="stock" type="number" min="0" max="2147483647" step="1" value="${Number(product.stock)}" required></label>
                         <div class="admin-image-fields">
                             <label>Caminho ou URL da imagem
                                 <input class="form-control" name="image_path" maxlength="255" value="${escapeHTML(product.image_path)}">
@@ -109,18 +109,18 @@ export function renderAdmin(state, section = "produtos", onError, refreshProduct
             <section class="admin-grid">
                 <form id="admin-category-form" class="panel stack admin-form">
                     <h2>Cadastrar categoria</h2>
-                    <label>Nome<input class="form-control" name="name" required></label>
-                    <label>Slug<input class="form-control" name="slug" required></label>
-                    <label>Descrição<textarea class="form-control" name="description"></textarea></label>
+                    <label>Nome<input class="form-control" name="name" required maxlength="100"></label>
+                    <label>Slug<input class="form-control" name="slug" required maxlength="120" pattern="[a-z0-9]+(-[a-z0-9]+)*"></label>
+                    <label>Descrição<textarea class="form-control" name="description" maxlength="2000"></textarea></label>
                     <button class="btn">Salvar categoria</button>
                 </form>
             </section>
             <h2>Categorias cadastradas</h2>
             <div class="stack">${(state.categories ?? []).map((category) => `
                 <form class="panel category-edit-form" data-admin-category="${Number(category.id)}">
-                    <label>Nome<input class="form-control" name="name" value="${escapeHTML(category.name)}" required></label>
-                    <label>Slug<input class="form-control" name="slug" value="${escapeHTML(category.slug)}" required></label>
-                    <label>Descrição<textarea class="form-control" name="description">${escapeHTML(category.description)}</textarea></label>
+                    <label>Nome<input class="form-control" name="name" value="${escapeHTML(category.name)}" required maxlength="100"></label>
+                    <label>Slug<input class="form-control" name="slug" value="${escapeHTML(category.slug)}" required maxlength="120" pattern="[a-z0-9]+(-[a-z0-9]+)*"></label>
+                    <label>Descrição<textarea class="form-control" name="description" maxlength="2000">${escapeHTML(category.description)}</textarea></label>
                     <button class="btn btn-secondary">Salvar categoria</button>
                     <button class="btn" type="button" data-delete-category="${Number(category.id)}">Excluir categoria</button>
                 </form>

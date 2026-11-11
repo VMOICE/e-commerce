@@ -96,7 +96,7 @@ function renderTopbar(state) {
         <header class="topbar">
             <a href="#catalogo" class="logo">Mobile<span>Store</span></a>
             <form class="topbar-search" id="search-form">
-                <input type="search" class="form-control" id="search-input"
+                <input type="search" class="form-control" id="search-input" maxlength="150"
                     placeholder="Pesquisar produtos..." aria-label="Pesquisar produtos"
                     value="${escapeHTML(state.productFilters?.search ?? "")}">
             </form>
@@ -133,10 +133,24 @@ function showSuccess(message) {
 
 function showFeedback(type, message) {
     const id = ++feedbackId;
-    setState({ feedback: { id, type, message } });
+    const feedback = document.querySelector(".page-message");
+    if (!feedback) {
+        console.error("Elemento de feedback não encontrado.");
+        return;
+    }
+
+    feedback.textContent = message;
+    feedback.classList.remove("error", "success");
+    feedback.classList.add(type);
+    feedback.setAttribute("role", type === "error" ? "alert" : "status");
+    feedback.setAttribute("aria-live", type === "error" ? "assertive" : "polite");
+
     window.setTimeout(() => {
-        if (getState().feedback?.id === id) {
-            setState({ feedback: null });
+        if (feedbackId === id) {
+            feedback.textContent = "";
+            feedback.classList.remove("error", "success");
+            feedback.setAttribute("role", "status");
+            feedback.setAttribute("aria-live", "polite");
         }
     }, 5000);
 }
@@ -206,6 +220,15 @@ function validateRequiredFields(form) {
         invalidField.setAttribute("aria-invalid", "true");
         showError(new Error(`Verifique o campo ${invalidField.closest("label")?.textContent.trim() ?? invalidField.name}.`));
         focusRenderedFormField(form, invalidField.name);
+        return false;
+    }
+
+    const password = form.querySelector('input[name="password"]');
+    const passwordConfirmation = form.querySelector('input[name="password_confirmation"]');
+    if (passwordConfirmation && password.value !== passwordConfirmation.value) {
+        passwordConfirmation.setAttribute("aria-invalid", "true");
+        showError(new Error("A confirmação de senha não corresponde à senha informada."));
+        focusRenderedFormField(form, passwordConfirmation.name);
         return false;
     }
 
@@ -576,7 +599,7 @@ export function renderApp() {
             <main class="main-content">
                 ${renderTopbar(state)}
                 <div class="page-container">
-                    <p class="page-message ${state.feedback?.type ?? ""}" role="${state.feedback?.type === "error" ? "alert" : "status"}" aria-live="${state.feedback?.type === "error" ? "assertive" : "polite"}">${escapeHTML(state.feedback?.message ?? "")}</p>
+                    <p class="page-message" role="status" aria-live="polite"></p>
                     ${renderRoute(state, page, id, {
                         onError: showError,
                         refreshAdminProducts,

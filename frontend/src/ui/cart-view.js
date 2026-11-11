@@ -18,7 +18,8 @@ export function renderCart(state) {
                     </div>
                     <form class="quantity-form" data-cart-form="${Number(item.product_id)}">
                         <input class="form-control quantity-input" type="number" name="quantity" min="1"
-                            max="${Number(product?.stock ?? 1)}" value="${Number(item.quantity)}"
+                            max="${Math.min(Math.max(Number(product?.stock ?? 1), Number(item.quantity)), 1000)}"
+                            step="1" value="${Number(item.quantity)}"
                             aria-label="Quantidade">
                         <button class="btn btn-secondary">Atualizar</button>
                     </form>

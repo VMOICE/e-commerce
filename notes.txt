@@ -11,3 +11,10 @@ fi
 
 docker compose exec api php artisan migrate --force
 docker compose exec api php artisan db:seed
+
+------------------------------------------------------
+
+Administrador|  admin@loja.test	 -  Admin123!  |
+Cliente 1|  cliente1@loja.test  -  Cliente123! |Tem um carrinho com uma unidade do produto “Cabo USB-C para USB-C”, um endereço de exemplo em São Paulo e um pedido pendente
+Cliente 2|  cliente2@loja.test  -  Cliente123! |Tem pedidos nos estados pago e entregue.
+Cliente 3|  cliente3@loja.test  -  Cliente123! |Tem pedidos nos estados enviado e cancelado.

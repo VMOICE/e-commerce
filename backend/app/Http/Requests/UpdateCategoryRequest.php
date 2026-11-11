@@ -29,9 +29,10 @@ class UpdateCategoryRequest extends FormRequest
                 'required',
                 'string',
                 'max:120',
+                'regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/',
                 Rule::unique('categories', 'slug')->ignore($category->id),
             ],
-            'description' => ['sometimes', 'nullable', 'string'],
+            'description' => ['sometimes', 'nullable', 'string', 'max:2000'],
         ];
     }
 }

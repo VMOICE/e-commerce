@@ -426,7 +426,6 @@ class DatabaseSeeder extends Seeder
                         'postal_code' => $orderAddress->postal_code,
                         'street' => $orderAddress->street,
                         'number' => $orderAddress->number,
-                        'complement' => $orderAddress->complement,
                         'neighborhood' => $orderAddress->neighborhood,
                         'city' => $orderAddress->city,
                         'state' => $orderAddress->state,

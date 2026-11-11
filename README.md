@@ -41,6 +41,13 @@ O seeder inclui três categorias, 30 produtos, produto sem estoque e produto ina
 - A criação do pedido usa status `pending`; o cliente confirma o pagamento simulado para `paid`. O administrador avança `paid → shipped → delivered`. O pedido `pending` pode ser cancelado, com devolução do estoque.
 - Valores são `decimal(10,2)` no banco; totais são calculados no servidor usando centavos inteiros.
 
+## Organização do frontend
+
+- `frontend/src/api/` concentra as chamadas HTTP; `app/handlers/` organiza os fluxos por funcionalidade e atualiza o estado em `app/state.js`.
+- `domain/` mantém regras de apresentação do domínio, como contagem de itens e status.
+- `ui/` separa as telas em módulos por fluxo (`catalog-view`, `cart-view`, `auth-view`, `account-view`, `checkout-view`, `orders-view` e `admin-view`). `render.js` mantém o roteamento e a vinculação dos eventos.
+- `ui/format.js` reúne formatação e utilitários compartilhados pelas telas.
+
 ## Testes
 
 ```powershell

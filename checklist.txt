@@ -109,12 +109,12 @@ X  Seeders populam o banco de desenvolvimento.
 X  Banco PostgreSQL ou MySQL funcionando.
 X  Respostas e códigos HTTP consistentes.
 10.3 Docker, Swagger UI e repositório
-☐  Frontend possui um único Dockerfile.
-☐  Backend possui Dockerfile.dev, Dockerfile de produção.
-☐  Projeto tem um compose.yaml que sobe todos os serviços necessários.
-☐  Swagger UI está acessível e permite consultar a documentação da API.
-☐  Repositório no GitHub está acessível pelo link enviado.
-☐  README contém as instruções de execução, as credenciais dos seeders e a regra de fusão de carrinho adotada.
-☐  .env real não foi versionado e existe um .env.example sem segredos reais.
+X  Frontend possui um único Dockerfile.
+X  Backend possui Dockerfile.dev, Dockerfile de produção.
+X  Projeto tem um compose.yaml que sobe todos os serviços necessários.
+X  Swagger UI está acessível e permite consultar a documentação da API.
+X  Repositório no GitHub está acessível pelo link enviado.
+X  README contém as instruções de execução, as credenciais dos seeders e a regra de fusão de carrinho adotada.
+X  .env real não foi versionado e existe um .env.example sem segredos reais.
 10.4 Extra opcional
 ☐  Aplicação hospedada com registro e compra por usuários reais: +10 pontos.

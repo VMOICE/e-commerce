@@ -135,6 +135,14 @@ button {
     background: var(--color-sidebar);
 }
 
+.sidebar-header {
+    display: flex;
+}
+
+.sidebar-toggle {
+    display: none;
+}
+
 .sidebar-logo {
     display: flex;
     align-items: center;
@@ -917,25 +925,104 @@ button {
     }
 
     .sidebar {
+        position: relative;
+        z-index: 2;
         width: 100%;
         min-width: 0;
         min-height: auto;
         padding: 12px;
     }
 
+    .sidebar-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
     .sidebar-logo {
         width: 38px;
         height: 38px;
-        margin-bottom: 12px;
+        margin: 0;
+        flex: 0 0 auto;
+    }
+
+    .sidebar-toggle {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        min-height: 42px;
+        padding: 8px 12px;
+        border: 1px solid #53616d;
+        border-radius: 6px;
+        background: transparent;
+        color: #ffffff;
+        font-weight: 600;
+    }
+
+    .sidebar-toggle:hover,
+    .sidebar-toggle:focus-visible {
+        background: #40505d;
     }
 
     .sidebar-menu {
-        flex-direction: row;
-        flex-wrap: wrap;
+        display: none;
+        flex-direction: column;
+        gap: 4px;
+        margin-top: 12px;
+        padding-top: 10px;
+        border-top: 1px solid #53616d;
+    }
+
+    .sidebar.is-open .sidebar-menu {
+        display: flex;
     }
 
     .sidebar-link {
         padding: 9px;
+    }
+
+    .main-content {
+        padding: 14px;
+    }
+
+    .topbar {
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .topbar-search {
+        order: 3;
+        flex: 1 0 100%;
+        max-width: none;
+    }
+
+    .topbar-actions {
+        justify-content: flex-end;
+        gap: 6px;
+        min-width: 0;
+    }
+
+    .topbar-actions > span {
+        overflow: hidden;
+        max-width: 110px;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .detail-layout,
+    .admin-grid {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 16px;
+    }
+
+    .panel {
+        padding: 14px;
+    }
+
+    .section-header {
+        align-items: flex-start;
+        flex-wrap: wrap;
     }
 
     .cart-row {

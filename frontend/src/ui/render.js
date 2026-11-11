@@ -72,8 +72,14 @@ function renderSidebar(state, page) {
 
     return `
         <aside class="sidebar">
-            <a href="#catalogo" class="sidebar-logo" aria-label="MobileStore">M</a>
-            <nav class="sidebar-menu" aria-label="Navegação principal">
+            <div class="sidebar-header">
+                <a href="#catalogo" class="sidebar-logo" aria-label="MobileStore">M</a>
+                <button class="sidebar-toggle" type="button" aria-expanded="false"
+                    aria-controls="primary-navigation">
+                    <span aria-hidden="true">☰</span> Menu
+                </button>
+            </div>
+            <nav class="sidebar-menu" id="primary-navigation" aria-label="Navegação principal">
                 ${links.map(([icon, label, href, key]) => `
                     <a href="${href}" class="sidebar-link ${activePage === key ? "active" : ""}"
                         ${activePage === key ? 'aria-current="page"' : ""}>
@@ -214,6 +220,27 @@ function focusRenderedFormField(form, fieldName) {
 }
 
 function bindEvents(app, page, id) {
+    const sidebar = app.querySelector(".sidebar");
+    const sidebarToggle = app.querySelector(".sidebar-toggle");
+    const closeSidebar = () => {
+        sidebar?.classList.remove("is-open");
+        sidebarToggle?.setAttribute("aria-expanded", "false");
+    };
+
+    sidebarToggle?.addEventListener("click", () => {
+        const isOpen = sidebar.classList.toggle("is-open");
+        sidebarToggle.setAttribute("aria-expanded", String(isOpen));
+    });
+    sidebar?.querySelectorAll(".sidebar-link").forEach((link) => {
+        link.addEventListener("click", closeSidebar);
+    });
+    sidebar?.addEventListener("keydown", (event) => {
+        if (event.key === "Escape") {
+            closeSidebar();
+            sidebarToggle?.focus();
+        }
+    });
+
     app.querySelector("#search-form")?.addEventListener("submit", async (event) => {
         event.preventDefault();
         try {

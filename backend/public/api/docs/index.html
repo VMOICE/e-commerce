@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#ffffff">
+    <title>Documentação da API — MobileStore</title>
+    <link rel="icon" type="image/png" href="/api/docs/assets/favicon-32x32.png">
+    <link rel="stylesheet" href="/api/docs/assets/swagger-ui.css">
+</head>
+<body>
+    <div id="swagger-ui"></div>
+    <script src="/api/docs/assets/swagger-ui-bundle.js"></script>
+    <script src="/api/docs/assets/swagger-ui-standalone-preset.js"></script>
+    <script>
+        window.addEventListener("load", () => {
+            window.ui = SwaggerUIBundle({
+                url: "/api/docs/openapi.yaml",
+                dom_id: "#swagger-ui",
+                deepLinking: true,
+                validatorUrl: null,
+                withCredentials: true,
+                presets: [
+                    SwaggerUIBundle.presets.apis,
+                    SwaggerUIStandalonePreset,
+                ],
+                layout: "StandaloneLayout",
+                requestInterceptor: async (request) => {
+                    request.credentials = "include";
+                    const method = (request.method || "GET").toUpperCase();
+
+                    if (!["GET", "HEAD", "OPTIONS"].includes(method)) {
+                        const csrfResponse = await fetch("/sanctum/csrf-cookie", {
+                            credentials: "include",
+                        });
+
+                        if (!csrfResponse.ok) {
+                            throw new Error(`Não foi possível iniciar a proteção CSRF (${csrfResponse.status}).`);
+                        }
+
+                        const xsrfCookie = document.cookie
+                            .split("; ")
+                            .find((cookie) => cookie.startsWith("XSRF-TOKEN="));
+
+                        if (xsrfCookie) {
+                            request.headers["X-XSRF-TOKEN"] = decodeURIComponent(
+                                xsrfCookie.slice("XSRF-TOKEN=".length)
+                            );
+                        }
+                    }
+
+                    return request;
+                },
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,9 +1,6 @@
 import {
     getProducts,
     getProduct,
-    createProduct,
-    updateProduct,
-    deactivateProduct,
 } from "../../api/products.js";
 
 import { getState, setState } from "../state.js";
@@ -46,45 +43,6 @@ export async function loadProduct(id) {
         if (error.response?.status !== 404) {
             console.error("Erro ao carregar produto:", error);
         }
-        throw error;
-    }
-}
-
-export async function registerProduct(productData) {
-    try {
-        const response = await createProduct(productData);
-
-        await loadProducts(getState().productFilters ?? {});
-
-        return response;
-    } catch (error) {
-        console.error("Erro ao cadastrar produto:", error);
-        throw error;
-    }
-}
-
-export async function editProduct(id, productData) {
-    try {
-        const response = await updateProduct(id, productData);
-
-        await loadProducts(getState().productFilters ?? {});
-
-        return response;
-    } catch (error) {
-        console.error("Erro ao atualizar produto:", error);
-        throw error;
-    }
-}
-
-export async function removeProduct(id) {
-    try {
-        const response = await deactivateProduct(id);
-
-        await loadProducts(getState().productFilters ?? {});
-
-        return response;
-    } catch (error) {
-        console.error("Erro ao desativar produto:", error);
         throw error;
     }
 }

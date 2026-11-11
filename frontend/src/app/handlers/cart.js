@@ -3,7 +3,6 @@ import {
     addToCart,
     updateCartItem,
     removeCartItem,
-    clearCart,
 } from "../../api/cart.js";
 
 import { setState } from "../state.js";
@@ -56,19 +55,6 @@ export async function removeProductFromCart(productId) {
         return cart;
     } catch (error) {
         console.error("Erro ao remover produto do carrinho:", error);
-        throw error;
-    }
-}
-
-export async function emptyCart() {
-    try {
-        const cart = await clearCart();
-
-        setState({ cart });
-
-        return cart;
-    } catch (error) {
-        console.error("Erro ao limpar carrinho:", error);
         throw error;
     }
 }

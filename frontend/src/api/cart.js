@@ -32,9 +32,3 @@ export async function removeCartItem(productId) {
 
     return handleCartResponse(response);
 }
-
-export async function clearCart() {
-    const response = await http.delete("/cart");
-
-    return handleCartResponse(response);
-}

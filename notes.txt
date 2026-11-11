@@ -9,4 +9,5 @@ if ! grep -Eq '^APP_KEY=base64:.+' backend/.env; then
   docker compose exec api php artisan key:generate
 fi
 
-docker compose exec api php artisan migrate --
+docker compose exec api php artisan migrate --force
+docker compose exec api php artisan db:seed

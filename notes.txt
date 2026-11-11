@@ -14,6 +14,14 @@ docker compose exec api php artisan db:seed
 
 ------------------------------------------------------
 
+Origens:
+Frontend: http://localhost:5173
+API: http://localhost:8081/api
+Swagger UI: http://localhost:8081/api/docs
+OpenAPI: http://localhost:8081/api/docs/openapi.yaml
+
+------------------------------------------------------
+
 Administrador|  admin@loja.test	 -  Admin123!  |
 Cliente 1|  cliente1@loja.test  -  Cliente123! |Tem um carrinho com uma unidade do produto “Cabo USB-C para USB-C”, um endereço de exemplo em São Paulo e um pedido pendente
 Cliente 2|  cliente2@loja.test  -  Cliente123! |Tem pedidos nos estados pago e entregue.

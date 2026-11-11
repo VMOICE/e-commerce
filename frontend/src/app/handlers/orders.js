@@ -4,9 +4,9 @@ import {
     createOrder,
     payOrder,
     cancelOrder,
-} from "../../../api/orders.js";
+} from "../../api/orders.js";
 
-import { setState } from "../../state.js";
+import { setState } from "../state.js";
 
 export async function loadOrders() {
     try {

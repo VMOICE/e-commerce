@@ -4,9 +4,9 @@ import {
     updateCartItem,
     removeCartItem,
     clearCart,
-} from "../../../api/cart.js";
+} from "../../api/cart.js";
 
-import { setState } from "../../state.js";
+import { setState } from "../state.js";
 
 export async function loadCart() {
     try {

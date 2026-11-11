@@ -4,9 +4,9 @@ import {
     createProduct,
     updateProduct,
     deactivateProduct,
-} from "../../../api/products.js";
+} from "../../api/products.js";
 
-import { getState, setState } from "../../state.js";
+import { getState, setState } from "../state.js";
 
 export async function loadProducts(filters = {}) {
     try {

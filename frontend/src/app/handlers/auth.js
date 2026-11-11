@@ -3,9 +3,9 @@ import {
     login,
     getMe,
     logout,
-} from "../../../api/auth.js";
+} from "../../api/auth.js";
 
-import { setState } from "../../state.js";
+import { setState } from "../state.js";
 
 export async function registerUser(userData) {
     try {

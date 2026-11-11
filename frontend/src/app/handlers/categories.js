@@ -3,9 +3,9 @@ import {
     createCategory,
     updateCategory,
     deleteCategory,
-} from "../../../api/categories.js";
+} from "../../api/categories.js";
 
-import { setState } from "../../state.js";
+import { setState } from "../state.js";
 
 export async function loadCategories() {
     try {

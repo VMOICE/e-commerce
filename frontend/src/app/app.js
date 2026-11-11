@@ -1,10 +1,10 @@
 import { getState, setState } from "./state.js";
 
-import { loadProducts } from "./handlers/products/products.js";
-import { loadCategories } from "./handlers/categories/categories.js";
-import { loadCart } from "./handlers/cart/cart.js";
-import { loadAuthenticatedUser } from "./handlers/auth/auth.js";
-import { loadOrders } from "./handlers/orders/orders.js";
+import { loadProducts } from "./handlers/products.js";
+import { loadCategories } from "./handlers/categories.js";
+import { loadCart } from "./handlers/cart.js";
+import { loadAuthenticatedUser } from "./handlers/auth.js";
+import { loadOrders } from "./handlers/orders.js";
 
 export async function initializeApp() {
     setState({

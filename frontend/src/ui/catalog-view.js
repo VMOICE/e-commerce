@@ -1,4 +1,4 @@
-import { loadProduct } from "../app/handlers/products/products.js";
+import { loadProduct } from "../app/handlers/products.js";
 import { setState } from "../app/state.js";
 import { escapeHTML, formatPrice, productImage } from "./format.js";
 

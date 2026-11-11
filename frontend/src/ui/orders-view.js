@@ -1,4 +1,4 @@
-import { loadOrder } from "../app/handlers/orders/orders.js";
+import { loadOrder } from "../app/handlers/orders.js";
 import { setState } from "../app/state.js";
 import { escapeHTML, formatDateTime, formatPrice, statusClass, statusLabel } from "./format.js";
 

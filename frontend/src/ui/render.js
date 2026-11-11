@@ -24,22 +24,22 @@ import {
     loginUser,
     logoutUser,
     registerUser,
-} from "../app/handlers/auth/auth.js";
+} from "../app/handlers/auth.js";
 import {
     addProductToCart,
     changeCartItemQuantity,
     loadCart,
     removeProductFromCart,
-} from "../app/handlers/cart/cart.js";
+} from "../app/handlers/cart.js";
 import {
     confirmOrderPayment,
     cancelCustomerOrder,
     loadOrder,
     loadOrders,
     checkout,
-} from "../app/handlers/orders/orders.js";
-import { loadCategories } from "../app/handlers/categories/categories.js";
-import { loadProducts } from "../app/handlers/products/products.js";
+} from "../app/handlers/orders.js";
+import { loadCategories } from "../app/handlers/categories.js";
+import { loadProducts } from "../app/handlers/products.js";
 import { getCartItemCount } from "../domain/cart.js";
 import { getState, setState, subscribe } from "../app/state.js";
 import { escapeHTML } from "./format.js";

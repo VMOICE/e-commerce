@@ -202,8 +202,16 @@ function focusRenderedFormField(form, fieldName) {
 function bindEvents(app, page, id) {
     app.querySelector("#search-form")?.addEventListener("submit", async (event) => {
         event.preventDefault();
-        await loadProducts({ ...getState().productFilters, search: app.querySelector("#search-input").value.trim(), page: 1 });
-        if (page !== "catalogo" && page !== "categorias") location.hash = "#catalogo";
+        try {
+            await loadProducts({
+                ...getState().productFilters,
+                search: app.querySelector("#search-input").value.trim(),
+                page: 1,
+            });
+            if (page !== "catalogo" && page !== "categorias") location.hash = "#catalogo";
+        } catch (error) {
+            showError(error);
+        }
     });
 
     app.querySelectorAll('input[name="category"]').forEach((input) => {
@@ -365,7 +373,6 @@ function bindEvents(app, page, id) {
             const form = event.currentTarget;
             let addressId = new FormData(form).get("address_id");
             if (addressId === "new") {
-                const fields = form.querySelector("#new-address-fields");
                 const values = Object.fromEntries(new FormData(form).entries());
                 const address = await createAddress(values);
                 addressId = address.data.id;

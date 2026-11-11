@@ -8,9 +8,10 @@ use App\Http\Requests\UpdateCategoryRequest;
 use App\Http\Resources\CategoryResource;
 use App\Models\Category;
 use App\Services\CategoryService;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Database\QueryException;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Support\Facades\DB;
 
 class CategoryController extends Controller
 {
@@ -57,6 +58,10 @@ class CategoryController extends Controller
         try {
             $categoryService->delete($category);
         } catch (QueryException $exception) {
+            if (! $this->isForeignKeyConstraintViolation($exception)) {
+                throw $exception;
+            }
+
             return response()->json([
                 'message' => 'Não é possível excluir uma categoria que possui produtos associados.',
             ], 409);
@@ -65,5 +70,20 @@ class CategoryController extends Controller
         return response()->json([
             'message' => 'Categoria excluída com sucesso.',
         ]);
+    }
+
+    private function isForeignKeyConstraintViolation(QueryException $exception): bool
+    {
+        $errorInfo = $exception->errorInfo;
+        $sqlState = $errorInfo[0] ?? (string) $exception->getCode();
+        $driverCode = $errorInfo[1] ?? null;
+
+        return match (DB::connection()->getDriverName()) {
+            'pgsql' => $sqlState === '23503',
+            'mysql' => $sqlState === '23000' && (int) $driverCode === 1451,
+            'sqlite' => $sqlState === '23000'
+                && str_contains($exception->getMessage(), 'FOREIGN KEY constraint failed'),
+            default => false,
+        };
     }
 }

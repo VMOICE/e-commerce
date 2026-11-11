@@ -43,20 +43,13 @@ import { loadProducts } from "../app/handlers/products/products.js";
 import { getCartItemCount } from "../domain/cart.js";
 import { getState, setState, subscribe } from "../app/state.js";
 import { escapeHTML } from "./format.js";
-import { renderCatalogPage, renderProductDetail } from "./catalog-view.js";
-import { renderCart } from "./cart-view.js";
-import { renderAuth } from "./auth-view.js";
-import { renderAccount } from "./account-view.js";
-import { renderCheckout } from "./checkout-view.js";
-import { renderOrderList, renderOrderDetail } from "./orders-view.js";
-import { renderAdmin } from "./admin-view.js";
+import {
+    renderRoute,
+    resolveHashRoute,
+    routeRequiresAuthentication,
+} from "./routes.js";
 
 let feedbackId = 0;
-
-function currentRoute() {
-    const [page, ...parts] = location.hash.slice(1).split("/");
-    return { page: page || "catalogo", id: parts.join("/") };
-}
 
 function renderSidebar(state, page) {
     const activePage = ({
@@ -511,30 +504,6 @@ function bindEvents(app, page, id) {
     });
 }
 
-function renderPage(state, page, id) {
-    switch (page) {
-        case "catalogo":
-        case "inicio": return renderCatalogPage(state);
-        case "categorias": return renderCatalogPage(state, true);
-        case "produto": return renderProductDetail(state, id, showError);
-        case "carrinho": return renderCart(state);
-        case "login": return renderAuth(false);
-        case "registro": return renderAuth(true);
-        case "checkout": return renderCheckout(state, showError);
-        case "pedidos": return renderOrderList(state);
-        case "pedido": return renderOrderDetail(state, id, showError);
-        case "conta": return renderAccount(state, id || "perfil", showError);
-        case "admin": return renderAdmin(state, id || "produtos", showError, refreshAdminProducts);
-        default: return `
-            <section class="panel empty-state">
-                <h1>Página não encontrada</h1>
-                <p>O endereço acessado não corresponde a uma página disponível.</p>
-                <a class="btn" href="#catalogo">Voltar ao catálogo</a>
-            </section>
-        `;
-    }
-}
-
 export function renderApp() {
     const app = document.querySelector("#app");
     if (!app) throw new Error("Elemento #app não encontrado.");
@@ -542,8 +511,8 @@ export function renderApp() {
         ? document.activeElement.closest("[data-cart-form]")?.dataset.cartForm ?? null
         : null;
     const state = getState();
-    const { page, id } = currentRoute();
-    const requiresAuthentication = ["checkout", "pedidos", "pedido", "conta", "admin"].includes(page);
+    const { page, id } = resolveHashRoute();
+    const requiresAuthentication = routeRequiresAuthentication(page);
 
     if (requiresAuthentication && !state.authInitialized) {
         app.innerHTML = `<main class="page-container"><p class="text-secondary">${state.error
@@ -565,7 +534,10 @@ export function renderApp() {
                 ${renderTopbar(state)}
                 <div class="page-container">
                     <p class="page-message ${state.feedback?.type ?? ""}" role="${state.feedback?.type === "error" ? "alert" : "status"}" aria-live="${state.feedback?.type === "error" ? "assertive" : "polite"}">${escapeHTML(state.feedback?.message ?? "")}</p>
-                    ${renderPage(state, page, id)}
+                    ${renderRoute(state, page, id, {
+                        onError: showError,
+                        refreshAdminProducts,
+                    })}
                 </div>
                 <footer class="footer">MobileStore © ${new Date().getFullYear()} · Frete grátis</footer>
             </main>

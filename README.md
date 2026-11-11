@@ -56,7 +56,7 @@ O seeder inclui três categorias, 30 produtos, produto sem estoque e produto ina
 
 - `frontend/src/api/` concentra as chamadas HTTP; `app/handlers/` organiza os fluxos por funcionalidade e atualiza o estado em `app/state.js`.
 - `domain/` mantém regras de apresentação do domínio, como contagem de itens e status.
-- `ui/` separa as telas em módulos por fluxo (`catalog-view`, `cart-view`, `auth-view`, `account-view`, `checkout-view`, `orders-view` e `admin-view`). `render.js` mantém o roteamento e a vinculação dos eventos.
+- `ui/` separa as telas em módulos por fluxo (`catalog-view`, `cart-view`, `auth-view`, `account-view`, `checkout-view`, `orders-view` e `admin-view`). `routes.js` centraliza as rotas, a identificação dos acessos autenticados e a associação de cada rota à sua tela; `render.js` monta a aplicação e vincula os eventos.
 - `ui/format.js` reúne formatação e utilitários compartilhados pelas telas.
 
 ## Testes

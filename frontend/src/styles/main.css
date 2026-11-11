@@ -653,6 +653,18 @@ button {
     gap: 12px;
 }
 
+.admin-image-fields {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.admin-image-fields label {
+    display: grid;
+    min-width: 0;
+    gap: 6px;
+}
+
 .admin-edit-form label,
 .category-edit-form label,
 .address-edit-form label,
@@ -717,6 +729,12 @@ button {
     width: 100%;
     max-width: 680px;
     margin-bottom: 20px;
+}
+
+@media (max-width: 550px) {
+    .admin-image-fields {
+        grid-template-columns: 1fr;
+    }
 }
 
 .admin-product-filters {

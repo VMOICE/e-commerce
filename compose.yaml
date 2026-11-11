@@ -20,7 +20,7 @@ services:
     container_name: ecommerce-api
     working_dir: /var/www/html
     command: >-
-      sh -c 'if [ ! -f vendor/autoload.php ] || [ composer.json -nt vendor/autoload.php ] || [ composer.lock -nt vendor/autoload.php ]; then composer install --no-interaction --prefer-dist --no-progress; fi; exec php-fpm'
+      sh -c 'mkdir -p storage/app/public && chown -R www-data:www-data storage/app/public && if [ ! -f vendor/autoload.php ] || [ composer.json -nt vendor/autoload.php ] || [ composer.lock -nt vendor/autoload.php ]; then composer install --no-interaction --prefer-dist --no-progress; fi; exec php-fpm'
     volumes:
       - ./backend:/var/www/html
       - backend_vendor:/var/www/html/vendor

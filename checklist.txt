@@ -16,7 +16,7 @@ X  Permite filtrar por categoria.
 X  Permite ordenar por preço (crescente e decrescente) e por mais recentes.
 X  A listagem é paginada e a paginação funciona no frontend.
 X  Produtos inativos não aparecem no catálogo.
-----  Uma busca sem resultados exibe mensagem apropriada, e não uma tela vazia sem explicação.
+X  Uma busca sem resultados exibe mensagem apropriada, e não uma tela vazia sem explicação.
 4.3 Página do produto
 X  É acessível ao clicar no produto e possui URL própria.
 X  Exibe nome, descrição, preço, categoria, imagem e disponibilidade.
@@ -84,30 +84,30 @@ X  Rotas protegidas acessadas sem autenticação redirecionam para o login.
 10. Checklist de entrega
 
 10.1 Funcionalidades obrigatórias
-☐  Registro, login e logout funcionando, com papéis cliente e admin.
-☐  Catálogo público com busca, filtro por categoria, ordenação e paginação.
-☐  Página de produto com detalhes e ação de adicionar ao carrinho.
-☐  Carrinho funcional sem login, persistido no servidor por sessão.
-☐  Fusão do carrinho de visitante com o carrinho da conta no login.
-☐  Alterar quantidade e remover itens do carrinho, com totais calculados no servidor.
-☐  Checkout com endereço de entrega e criação do pedido.
-☐  Baixa de estoque na criação do pedido e devolução no cancelamento.
-☐  Pagamento simulado alterando o status do pedido.
-☐  Meus pedidos com listagem e tela de detalhe.
-☐  Área administrativa com CRUD de produtos e categorias e gestão dos status dos pedidos.
-☐  Navegação com catálogo, carrinho, meus pedidos, perfil e painel do admin.
-☐  Não há elementos visuais sem funcionamento apenas para imitar uma loja real.
+X  Registro, login e logout funcionando, com papéis cliente e admin.
+X  Catálogo público com busca, filtro por categoria, ordenação e paginação.
+X  Página de produto com detalhes e ação de adicionar ao carrinho.
+X  Carrinho funcional sem login, persistido no servidor por sessão.
+X  Fusão do carrinho de visitante com o carrinho da conta no login.
+X  Alterar quantidade e remover itens do carrinho, com totais calculados no servidor.
+X  Checkout com endereço de entrega e criação do pedido.
+X  Baixa de estoque na criação do pedido e devolução no cancelamento.
+X  Pagamento simulado alterando o status do pedido.
+X  Meus pedidos com listagem e tela de detalhe.
+X  Área administrativa com CRUD de produtos e categorias e gestão dos status dos pedidos.
+X  Navegação com catálogo, carrinho, meus pedidos, perfil e painel do admin.
+X  Não há elementos visuais sem funcionamento apenas para imitar uma loja real.
 10.2 Backend e banco de dados
-☐  API Laravel organizada no padrão MVC + Service Layer.
-☐  Regras de carrinho, estoque e pedido implementadas na camada de Service.
-☐  Migrations e relacionamentos principais configurados.
-☐  Autenticação e autorização aplicadas, incluindo o bloqueio das rotas administrativas.
-☐  Unicidade de carrinho + produto e limites de estoque respeitados.
-☐  Criação do pedido executada dentro de uma transação.
-☐  Preços congelados nos itens do pedido.
-☐  Seeders populam o banco de desenvolvimento.
-☐  Banco PostgreSQL ou MySQL funcionando.
-☐  Respostas e códigos HTTP consistentes.
+X  API Laravel organizada no padrão MVC + Service Layer.
+X  Regras de carrinho, estoque e pedido implementadas na camada de Service.
+X  Migrations e relacionamentos principais configurados.
+X  Autenticação e autorização aplicadas, incluindo o bloqueio das rotas administrativas.
+X  Unicidade de carrinho + produto e limites de estoque respeitados.
+X  Criação do pedido executada dentro de uma transação.
+X  Preços congelados nos itens do pedido.
+X  Seeders populam o banco de desenvolvimento.
+X  Banco PostgreSQL ou MySQL funcionando.
+X  Respostas e códigos HTTP consistentes.
 10.3 Docker, Swagger UI e repositório
 ☐  Frontend possui um único Dockerfile.
 ☐  Backend possui Dockerfile.dev, Dockerfile de produção.

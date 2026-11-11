@@ -155,6 +155,20 @@ function formValues(form) {
     return Object.fromEntries(new FormData(form).entries());
 }
 
+function productFormData(form) {
+    const values = new FormData(form);
+    const image = values.get("image");
+    if (!(image instanceof File) || image.size === 0) {
+        values.delete("image");
+    }
+
+    values.set("category_id", String(Number(values.get("category_id"))));
+    values.set("price", Number(values.get("price")).toFixed(2));
+    values.set("stock", String(Number(values.get("stock"))));
+
+    return values;
+}
+
 function validateRequiredFields(form) {
     const requiredFields = [...form.querySelectorAll("[required]:not(:disabled)")];
     const incompleteFields = requiredFields.filter((field) => !field.value.trim());
@@ -424,10 +438,7 @@ function bindEvents(app, page, id) {
         event.preventDefault();
         const form = event.currentTarget;
         try {
-            const values = formValues(form);
-            values.category_id = Number(values.category_id);
-            values.price = Number(values.price).toFixed(2);
-            values.stock = Number(values.stock);
+            const values = productFormData(form);
             await createProduct(values);
             form.reset();
             await refreshAdminProducts({});
@@ -448,11 +459,9 @@ function bindEvents(app, page, id) {
         form.addEventListener("submit", async (event) => {
             event.preventDefault();
             try {
-                const values = formValues(form);
-                values.category_id = Number(values.category_id);
-                values.price = Number(values.price).toFixed(2);
-                values.stock = Number(values.stock);
-                values.is_active = values.is_active === "1";
+                const values = productFormData(form);
+                values.set("is_active", values.get("is_active") === "1" ? "1" : "0");
+                values.set("_method", "PUT");
                 await updateProduct(form.dataset.adminProduct, values);
                 await refreshAdminProducts();
                 await loadProducts(getState().productFilters);

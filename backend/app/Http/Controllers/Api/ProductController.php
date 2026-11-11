@@ -11,6 +11,8 @@ use App\Services\ProductService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Support\Facades\Storage;
+use RuntimeException;
 
 class ProductController extends Controller
 {
@@ -58,7 +60,9 @@ class ProductController extends Controller
         StoreProductRequest $request,
         ProductService $productService
     ): JsonResponse {
-        $product = $productService->create($request->validated());
+        $data = $request->validated();
+        $this->storeProductImage($data);
+        $product = $productService->create($data);
 
         return response()->json([
             'message' => 'Produto cadastrado com sucesso.',
@@ -71,15 +75,40 @@ class ProductController extends Controller
         Product $product,
         ProductService $productService
     ): JsonResponse {
+        $data = $request->validated();
+        $previousImagePath = $product->image_path;
+        $imagePath = $this->storeProductImage($data);
+
         $updatedProduct = $productService->update(
             $product,
-            $request->validated()
+            $data
         );
+
+        if ($imagePath && str_starts_with((string) $previousImagePath, 'products/')) {
+            Storage::disk('public')->delete($previousImagePath);
+        }
 
         return response()->json([
             'message' => 'Produto atualizado com sucesso.',
             'data' => new ProductResource($updatedProduct),
         ]);
+    }
+
+    private function storeProductImage(array &$data): ?string
+    {
+        if (!isset($data['image'])) {
+            return null;
+        }
+
+        $imagePath = $data['image']->store('products', 'public');
+        if ($imagePath === false) {
+            throw new RuntimeException('Não foi possível salvar a imagem do produto.');
+        }
+
+        $data['image_path'] = $imagePath;
+        unset($data['image']);
+
+        return $imagePath;
     }
 
     public function destroy(

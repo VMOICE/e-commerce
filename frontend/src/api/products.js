@@ -18,12 +18,16 @@ export async function getProduct(id) {
 }
 
 export async function createProduct(productData) {
-    const response = await http.post("/admin/products", productData);
+    const response = await http.post("/admin/products", productData, {
+        headers: { "Content-Type": "multipart/form-data" },
+    });
     return response.data;
 }
 
 export async function updateProduct(id, productData) {
-    const response = await http.put(`/admin/products/${id}`, productData);
+    const response = await http.post(`/admin/products/${id}`, productData, {
+        headers: { "Content-Type": "multipart/form-data" },
+    });
     return response.data;
 }
 

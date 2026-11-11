@@ -29,6 +29,7 @@ class UpdateProductRequest extends FormRequest
             'price' => ['sometimes', 'numeric', 'min:0', 'max:99999999.99'],
             'stock' => ['sometimes', 'integer', 'min:0'],
             'image_path' => ['sometimes', 'nullable', 'string', 'max:255'],
+            'image' => ['sometimes', 'file', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
             'is_active' => ['sometimes', 'boolean'],
         ];
     }

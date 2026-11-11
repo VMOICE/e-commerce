@@ -47,7 +47,14 @@ export function renderAdmin(state, section = "produtos", onError, refreshProduct
                     <label>Descrição<textarea class="form-control" name="description"></textarea></label>
                     <label>Preço<input class="form-control" name="price" type="number" min="0" step="0.01" required></label>
                     <label>Estoque<input class="form-control" name="stock" type="number" min="0" required></label>
-                    <label>Caminho ou URL da imagem<input class="form-control" name="image_path" maxlength="255"></label>
+                    <div class="admin-image-fields">
+                        <label>Caminho ou URL da imagem
+                            <input class="form-control" name="image_path" maxlength="255">
+                        </label>
+                        <label>Enviar imagem (JPEG, PNG ou WebP; até 5 MB)
+                            <input class="form-control" name="image" type="file" accept="image/jpeg,image/png,image/webp">
+                        </label>
+                    </div>
                     <button class="btn">Salvar produto</button>
                 </form>
             </section>
@@ -69,7 +76,8 @@ export function renderAdmin(state, section = "produtos", onError, refreshProduct
             </form>
             ${Array.isArray(state.adminProducts) ? `
                 ${state.adminProducts.length ? `<div class="stack">${state.adminProducts.map((product) => `
-                    <form class="panel admin-edit-form" data-admin-product="${Number(product.id)}">
+                    <form class="panel admin-edit-form" data-admin-product="${Number(product.id)}"
+                        enctype="multipart/form-data">
                         <strong>Produto #${Number(product.id)}</strong>
                         <label>Nome<input class="form-control" name="name" value="${escapeHTML(product.name)}" required></label>
                         <label>Slug<input class="form-control" name="slug" value="${escapeHTML(product.slug)}" required></label>
@@ -79,7 +87,14 @@ export function renderAdmin(state, section = "produtos", onError, refreshProduct
                         <label>Descrição<textarea class="form-control" name="description">${escapeHTML(product.description)}</textarea></label>
                         <label>Preço<input class="form-control" name="price" type="number" step="0.01" min="0" value="${escapeHTML(product.price)}" required></label>
                         <label>Estoque<input class="form-control" name="stock" type="number" min="0" value="${Number(product.stock)}" required></label>
-                        <label>Caminho ou URL da imagem<input class="form-control" name="image_path" maxlength="255" value="${escapeHTML(product.image_path)}"></label>
+                        <div class="admin-image-fields">
+                            <label>Caminho ou URL da imagem
+                                <input class="form-control" name="image_path" maxlength="255" value="${escapeHTML(product.image_path)}">
+                            </label>
+                            <label>Enviar nova imagem (JPEG, PNG ou WebP; até 5 MB)
+                                <input class="form-control" name="image" type="file" accept="image/jpeg,image/png,image/webp">
+                            </label>
+                        </div>
                         <label>Status<select class="form-control" name="is_active">
                             <option value="1" ${product.is_active ? "selected" : ""}>Ativo</option>
                             <option value="0" ${!product.is_active ? "selected" : ""}>Inativo</option>

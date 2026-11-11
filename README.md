@@ -7,14 +7,25 @@ Loja virtual acadêmica com frontend em HTML/CSS/JavaScript e API REST Laravel. 
 Requer Docker Desktop e Docker Compose:
 
 ```powershell
+if (-not (Test-Path backend\.env)) {
+    Copy-Item backend\.env.example backend\.env
+}
 docker compose up -d --build
+if (-not (Select-String -Path backend\.env -Pattern '^APP_KEY=base64:.+' -Quiet)) {
+    docker compose exec api php artisan key:generate
+}
 docker compose exec api php artisan migrate --force
 docker compose exec api php artisan db:seed
 ```
 
 - Frontend: http://localhost:5173
 - API: http://localhost:8081/api
-- OpenAPI: http://localhost:8081/openapi.yaml
+- Swagger UI: http://localhost:8081/api/docs
+- OpenAPI: http://localhost:8081/api/docs/openapi.yaml
+
+O bloco gera o `APP_KEY` apenas quando ele ainda não está configurado. Evite
+trocar essa chave depois de usar a aplicação, pois isso invalida os dados de
+sessão criptografados com a chave anterior.
 
 O volume `postgres_data` persiste o banco; `product_storage` persiste as imagens enviadas para `storage/app/public`. Os produtos de demonstração usam ilustrações SVG locais por categoria até que uma imagem de produto seja enviada. Para expor imagens enviadas, execute uma vez:
 
